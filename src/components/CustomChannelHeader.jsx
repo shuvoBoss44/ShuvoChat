@@ -4,12 +4,11 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import CallButton from "./CallButton";
 
-const CustomChannelHeader = ({ handleVideoCall }) => {
+const CustomChannelHeader = ({ handleVideoCall, isGroupChat = false }) => {
   const navigate = useNavigate();
 
   return (
     <div className="flex items-center justify-between px-4 py-2 shadow-md bg-white dark:bg-gray-900">
-      {/* Left side: Back button + ChannelHeader */}
       <div className="flex items-center gap-2">
         <button
           onClick={() => navigate(-1)}
@@ -20,9 +19,7 @@ const CustomChannelHeader = ({ handleVideoCall }) => {
         </button>
         <ChannelHeader />
       </div>
-
-      {/* Right side: Call button */}
-      <CallButton handleVideoCall={handleVideoCall} />
+      {isGroupChat && <CallButton handleVideoCall={handleVideoCall} />}
     </div>
   );
 };

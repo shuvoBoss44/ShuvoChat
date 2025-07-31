@@ -4,6 +4,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ChatPage from "./pages/Chat";
+import GroupChat from "./pages/GroupChat";
 import Call from "./pages/Call";
 import toast, { Toaster } from "react-hot-toast";
 import Loading from "./components/Loading";
@@ -41,6 +42,18 @@ const App = () => {
             authUser ? (
               <Layout showSidebar={false}>
                 <ChatPage />
+              </Layout>
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+        <Route
+          path="/group-chat/:id"
+          element={
+            authUser ? (
+              <Layout showSidebar={false}>
+                <GroupChat />
               </Layout>
             ) : (
               <Navigate to="/login" />

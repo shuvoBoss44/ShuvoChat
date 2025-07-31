@@ -1,19 +1,18 @@
-import { Link, Navigate, useLocation } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import useAuthUser from "../hooks/useAuthUser";
 import { BellIcon, HomeIcon, ShipWheelIcon, UsersIcon } from "lucide-react";
-import { useNavigate } from "react-router";
 
 const Sidebar = () => {
   const { authUser } = useAuthUser();
   const location = useLocation();
   const currentPath = location.pathname;
-  const Navigate = useNavigate();
+  const navigate = useNavigate();
   return (
     <aside className="w-64 bg-base-200 border-r border-base-300 hidden lg:flex flex-col h-screen sticky top-0">
       <div className="p-5 border-b border-base-300">
         <Link to="/" className="flex items-center gap-2.5">
           <ShipWheelIcon className="size-9 text-primary" />
-          <span className="text-3xl font-bold font-mono bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary  tracking-wider">
+          <span className="text-3xl font-bold font-mono bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary tracking-wider">
             ShuvoChat
           </span>
         </Link>
@@ -29,12 +28,21 @@ const Sidebar = () => {
           <HomeIcon className="size-5 text-base-content opacity-70" />
           <span>Home</span>
         </Link>
+        <Link
+          to="/group-chats"
+          className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case ${
+            currentPath === "/group-chats" ? "btn-active" : ""
+          }`}
+        >
+          <UsersIcon className="size-5 text-base-content opacity-70" />
+          <span>Group Chats</span>
+        </Link>
       </nav>
 
       {/* USER PROFILE SECTION */}
       <div
         className="p-4 border-t border-base-300 mt-auto cursor-pointer hover:bg-base-300 transition-colors"
-        onClick={() => Navigate("/onboarding")}
+        onClick={() => navigate("/onboarding")}
       >
         <div className="flex items-center gap-3">
           <div className="avatar">

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import axiosInstance from "../lib/axios";
-import { ShipWheelIcon, X, LogOut } from "lucide-react";
+import { ShipWheelIcon, X, LogOut, Users } from "lucide-react";
+import CreateGroupModal from "../components/CreateGroupModal";
 
 const Home = () => {
   const queryClient = useQueryClient();
@@ -13,6 +14,7 @@ const Home = () => {
   const [cancelingRequestId, setCancelingRequestId] = useState(null);
   const [processingIncomingRequestId, setProcessingIncomingRequestId] =
     useState(null);
+  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
 
   // Invalidate queries after login
   useEffect(() => {
@@ -21,7 +23,7 @@ const Home = () => {
       queryClient.invalidateQueries({ queryKey: ["outgoingRequests"] });
       queryClient.invalidateQueries({ queryKey: ["incomingRequests"] });
       queryClient.invalidateQueries({ queryKey: ["recommendedUsers"] });
-      // Clear location state to prevent repeated invalidation
+      queryClient.invalidateQueries({ queryKey: ["groupChats"] });
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location, queryClient, navigate]);
@@ -37,16 +39,12 @@ const Home = () => {
       return response.data;
     },
     onSuccess: () => {
-      // Clear all React Query cache
       queryClient.clear();
-      // Reset local state
       setError(null);
       setSendingRequestId(null);
       setCancelingRequestId(null);
       setProcessingIncomingRequestId(null);
-      // Clear any axios headers
       axiosInstance.defaults.headers.common["Authorization"] = null;
-      // Redirect to login page
       navigate("/login");
     },
     onError: err => {
@@ -112,6 +110,24 @@ const Home = () => {
       staleTime: 5 * 60 * 1000,
     });
 
+  // Fetch group chats
+  const { data: groupChats = [], isLoading: isLoadingGroupChats } = useQuery({
+    queryKey: ["groupChats"],
+    queryFn: async () => {
+      try {
+        const response = await axiosInstance.get("chats/groups");
+        return response.data.groups;
+      } catch (err) {
+        throw new Error(
+          err.response?.data?.message || "Failed to fetch group chats"
+        );
+      }
+    },
+    onError: err => setError(err.message),
+    retry: 3,
+    staleTime: 5 * 60 * 1000,
+  });
+
   // Fetch recommended users
   const { data: recommendedUsers = [], isLoading: isLoadingRecommended } =
     useQuery({
@@ -124,7 +140,9 @@ const Home = () => {
           }
           const currentFriendsIds = new Set(friends.map(f => f._id));
           const outgoingRecipientIds = new Set(
-            outgoingRequests.map(req => req.recipient._id)
+            outgoingRequests
+              .filter(req => req.recipient?._id)
+              .map(req => req.recipient._id)
           );
           const incomingSenderIds = new Set(
             incomingRequests.map(req => req.sender._id)
@@ -150,9 +168,11 @@ const Home = () => {
       staleTime: 5 * 60 * 1000,
     });
 
-  // Derived state for pending outgoing requests
+  // Derived state for pending outgoing requests with safeguard
   const pendingOutgoingRequestIds = new Set(
-    outgoingRequests.map(req => req.recipient._id)
+    outgoingRequests
+      .filter(req => req.recipient?._id)
+      .map(req => req.recipient._id)
   );
 
   // Send friend request mutation
@@ -401,7 +421,8 @@ const Home = () => {
     isLoadingFriends ||
     isLoadingRecommended ||
     isLoadingOutgoingRequests ||
-    isLoadingIncomingRequests;
+    isLoadingIncomingRequests ||
+    isLoadingGroupChats;
 
   return (
     <div className="min-h-screen bg-base-100 p-4 sm:p-6 md:p-8">
@@ -458,6 +479,56 @@ const Home = () => {
 
         {!isLoading && (
           <div className="space-y-8">
+            {/* Group Chats Section */}
+            <div className="card bg-base-100 border border-primary/25 shadow-lg p-6 transition-transform hover:scale-[1.01]">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold text-primary">
+                  Group Chats
+                </h2>
+                <button
+                  className="btn btn-primary btn-sm"
+                  onClick={() => setIsGroupModalOpen(true)}
+                  aria-label="Create new group chat"
+                >
+                  <Users className="w-4 h-4" /> Create Group
+                </button>
+              </div>
+              {groupChats.length === 0 ? (
+                <p className="text-base-content/70">
+                  You are not part of any group chats yet.
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {groupChats.map(group => (
+                    <div
+                      key={group._id}
+                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-base-200 transition-colors"
+                    >
+                      <div className="avatar">
+                        <div className="w-10 rounded-full border border-primary/50 overflow-hidden">
+                          <img
+                            src={group.image || "/default-group-avatar.png"}
+                            alt={`${group.name}'s avatar`}
+                            className="object-fill"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <div>{group.name}</div>
+                        <Link
+                          to={`/group-chat/${group._id}`}
+                          className="btn btn-primary btn-sm mt-3"
+                          aria-label={`Join group chat ${group.name}`}
+                        >
+                          Join Group
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Friends Section */}
             <div className="card bg-base-100 border border-primary/25 shadow-lg p-6 transition-transform hover:scale-[1.01]">
               <h2 className="text-xl font-semibold text-primary mb-4">
@@ -594,18 +665,24 @@ const Home = () => {
                       <div className="avatar">
                         <div className="w-10 rounded-full border border-primary/50 overflow-hidden">
                           <img
+                            Laboratory
+                            of
+                            Computational
+                            Physics
                             src={
-                              request.recipient.profilePicture ||
+                              request.recipient?.profilePicture ||
                               "/default-avatar.png"
                             }
-                            alt={`${request.recipient.fullName}'s avatar`}
+                            alt={`${
+                              request.recipient?.fullName || "Unknown"
+                            }'s avatar`}
                             className="object-fill"
                           />
                         </div>
                       </div>
                       <div className="flex-1">
                         <p className="font-semibold text-sm text-base-content">
-                          {request.recipient.fullName}
+                          {request.recipient?.fullName || "Unknown"}
                         </p>
                         <p className="text-xs text-base-content/70">
                           Request pending
@@ -617,7 +694,9 @@ const Home = () => {
                           cancelFriendRequestMutation.mutate(request._id)
                         }
                         disabled={cancelingRequestId === request._id}
-                        aria-label={`Cancel friend request to ${request.recipient.fullName}`}
+                        aria-label={`Cancel friend request to ${
+                          request.recipient?.fullName || "Unknown"
+                        }`}
                       >
                         {cancelingRequestId === request._id ? (
                           <span
@@ -697,6 +776,11 @@ const Home = () => {
           </div>
         )}
       </div>
+      <CreateGroupModal
+        isOpen={isGroupModalOpen}
+        onClose={() => setIsGroupModalOpen(false)}
+        friends={friends}
+      />
     </div>
   );
 };
