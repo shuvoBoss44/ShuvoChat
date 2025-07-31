@@ -49,6 +49,7 @@ const Profile = () => {
   });
 
   // ** Simplified Update profile mutation **
+  // Update profile mutation
   const updateProfileMutation = useMutation({
     mutationFn: async () => {
       // Create a new FormData object
@@ -62,20 +63,12 @@ const Profile = () => {
       form.append("college", formData.college);
       form.append("relationshipStatus", formData.relationshipStatus);
 
-      // Only append the image file if one has been selected
+      // Conditionally append the image file
       if (imageFile) {
         form.append("profilePicture", imageFile);
       }
 
-      const formEntries = [...form.entries()];
-      console.log("FormData entries:", formEntries);
-
-      // We still need to handle the case where the form is empty,
-      // as the backend requires at least one field to be present.
-      if (formEntries.length === 0) {
-        throw new Error("No changes to submit");
-      }
-
+      // The backend handles the "no changes" case, so we don't need to check here.
       const response = await axiosInstance.patch("/user/updateProfile", form, {
         headers: { "Content-Type": "multipart/form-data" },
       });
