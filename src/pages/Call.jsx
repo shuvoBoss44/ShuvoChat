@@ -24,8 +24,8 @@ const CallContent = () => {
 
   useEffect(() => {
     if (callingState === CallingState.LEFT) {
-      console.log("Call left, navigating to home.");
-      navigate("/");
+      console.log("Call left, navigating to messages.");
+      navigate("/messages");
     }
   }, [callingState, navigate]);
 
@@ -55,7 +55,6 @@ const Call = () => {
   const [isConnecting, setIsConnecting] = useState(true);
   const { authUser, isLoading: isLoadingAuthUser } = useAuthUser();
   const navigate = useNavigate();
-
   const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY;
 
   const { data: tokenData, isLoading: isLoadingToken } = useQuery({
@@ -91,7 +90,6 @@ const Call = () => {
         });
 
         const callInstance = videoClient.call("default", callId);
-
         await callInstance.join({ create: true });
 
         setClient(videoClient);
@@ -142,8 +140,11 @@ const Call = () => {
           >
             Retry
           </button>
-          <button onClick={() => navigate("/")} className="btn btn-ghost mt-2">
-            Go Home
+          <button
+            onClick={() => navigate("/messages")}
+            className="btn btn-ghost mt-2"
+          >
+            Go to Messages
           </button>
         </div>
       )}

@@ -1,161 +1,69 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import useAuthUser from "../hooks/useAuthUser";
-import {
-  HomeIcon,
-  UsersIcon,
-  UserIcon,
-  Menu,
-  X,
-  MessageSquare,
-  Phone,
-} from "lucide-react";
-import { useState } from "react";
-import ThemeSelector from "./ThemeSelector";
+import { BellIcon, HomeIcon, ShipWheelIcon, MessageSquare } from "lucide-react";
 
 const Sidebar = () => {
   const { authUser } = useAuthUser();
   const location = useLocation();
-  const navigate = useNavigate();
   const currentPath = location.pathname;
-  const [isOpen, setIsOpen] = useState(false);
-
-  const toggleSidebar = () => setIsOpen(!isOpen);
-
-  // Close sidebar when clicking outside on mobile
-  const handleOverlayClick = () => {
-    if (isOpen) setIsOpen(false);
-  };
+  const navigate = useNavigate();
 
   return (
-    <>
-      <button
-        className="lg:hidden fixed top-4 left-4 z-50 btn btn-ghost btn-circle"
-        onClick={toggleSidebar}
-        aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
-      >
-        {isOpen ? (
-          <X className="size-6 text-primary" />
-        ) : (
-          <Menu className="size-6 text-primary" />
-        )}
-      </button>
-      <aside
-        className={`fixed top-0 left-0 h-screen w-64 bg-base-200 border-r border-base-300 flex flex-col transition-transform duration-300 ${
-          isOpen ? "translate-x-0 z-40" : "-translate-x-full"
-        } lg:translate-x-0 lg:z-30 shadow-lg`}
-      >
-        <div className="p-5 border-b border-base-300">
-          <Link to="/" className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="ShuvoMedia Logo" className="size-9" />
-            <span className="text-2xl font-bold font-mono bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary tracking-wider">
-              ShuvoMedia
-            </span>
-          </Link>
-        </div>
+    <aside className="w-64 bg-base-200 border-r border-base-300 hidden lg:flex flex-col h-screen sticky top-0">
+      <div className="p-5 border-b border-base-300">
+        <Link to="/" className="flex items-center gap-2.5">
+          <ShipWheelIcon className="size-9 text-primary" />
+          <span className="text-3xl font-bold font-mono bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary tracking-wider">
+            ShuvoChat
+          </span>
+        </Link>
+      </div>
 
-        <nav className="flex-1 p-4 space-y-1">
-          <Link
-            to="/"
-            className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case ${
-              currentPath === "/"
-                ? "bg-primary/10 text-primary"
-                : "hover:bg-base-300"
-            }`}
-            onClick={() => setIsOpen(false)}
-          >
-            <HomeIcon className="size-5 text-primary opacity-70" />
-            <span>Home</span>
-          </Link>
-          <Link
-            to="/friends"
-            className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case ${
-              currentPath === "/friends"
-                ? "bg-primary/10 text-primary"
-                : "hover:bg-base-300"
-            }`}
-            onClick={() => setIsOpen(false)}
-          >
-            <UsersIcon className="size-5 text-primary opacity-70" />
-            <span>Friends</span>
-          </Link>
-          <Link
-            to="/group-chat"
-            className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case ${
-              currentPath === "/group-chat"
-                ? "bg-primary/10 text-primary"
-                : "hover:bg-base-300"
-            }`}
-            onClick={() => setIsOpen(false)}
-          >
-            <MessageSquare className="size-5 text-primary opacity-70" />
-            <span>Group Chats</span>
-          </Link>
-          <Link
-            to="/group-call"
-            className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case ${
-              currentPath === "/group-call"
-                ? "bg-primary/10 text-primary"
-                : "hover:bg-base-300"
-            }`}
-            onClick={() => setIsOpen(false)}
-          >
-            <Phone className="size-5 text-primary opacity-70" />
-            <span>Group Calls</span>
-          </Link>
-          <Link
-            to="/profile"
-            className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case ${
-              currentPath === "/profile"
-                ? "bg-primary/10 text-primary"
-                : "hover:bg-base-300"
-            }`}
-            onClick={() => setIsOpen(false)}
-          >
-            <UserIcon className="size-5 text-primary opacity-70" />
-            <span>Profile</span>
-          </Link>
-        </nav>
+      <nav className="flex-1 p-4 space-y-1">
+        <Link
+          to="/"
+          className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case ${
+            currentPath === "/" ? "btn-active" : ""
+          }`}
+        >
+          <HomeIcon className="size-5 text-base-content opacity-70" />
+          <span>Home</span>
+        </Link>
+        <Link
+          to="/messages"
+          className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case ${
+            currentPath === "/messages" ? "btn-active" : ""
+          }`}
+        >
+          <MessageSquare className="size-5 text-base-content opacity-70" />
+          <span>Messages</span>
+        </Link>
+      </nav>
 
-        <div className="p-4 border-t border-base-300 mt-auto">
-          <div className="flex items-center gap-3">
-            <ThemeSelector />
-            <div
-              className="flex items-center gap-3 cursor-pointer hover:bg-base-300 transition-colors rounded-lg p-2"
-              onClick={() => {
-                navigate("/profile");
-                setIsOpen(false);
-              }}
-            >
-              <div className="avatar">
-                <div className="w-10 rounded-full border border-primary/50 overflow-hidden">
-                  <img
-                    src={authUser?.profilePicture || "/default-avatar.png"}
-                    alt="User Avatar"
-                    className="object-cover"
-                    onError={e => (e.target.src = "/default-avatar.png")}
-                  />
-                </div>
-              </div>
-              <div className="flex-1">
-                <p className="font-semibold text-sm text-primary">
-                  {authUser?.fullName}
-                </p>
-                <p className="text-xs text-success flex items-center gap-1">
-                  <span className="size-2 rounded-full bg-success inline-block" />
-                  Online
-                </p>
-              </div>
+      {/* USER PROFILE SECTION */}
+      <div
+        className="p-4 border-t border-base-300 mt-auto cursor-pointer hover:bg-base-300 transition-colors"
+        onClick={() => navigate("/onboarding")}
+      >
+        <div className="flex items-center gap-3">
+          <div className="avatar">
+            <div className="w-10 rounded-full">
+              <img
+                src={authUser?.profilePicture || "/default-avatar.png"}
+                alt="User Avatar"
+              />
             </div>
           </div>
+          <div className="flex-1">
+            <p className="font-semibold text-sm">{authUser?.fullName}</p>
+            <p className="text-xs text-success flex items-center gap-1">
+              <span className="size-2 rounded-full bg-success inline-block" />
+              Online
+            </p>
+          </div>
         </div>
-      </aside>
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 lg:hidden z-20"
-          onClick={handleOverlayClick}
-        ></div>
-      )}
-    </>
+      </div>
+    </aside>
   );
 };
 

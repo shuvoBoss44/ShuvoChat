@@ -4,14 +4,14 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import CallButton from "./CallButton";
 
-const CustomChannelHeader = ({ handleVideoCall, isGroupChat = false }) => {
+const CustomChannelHeader = ({ handleVideoCall }) => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex items-center justify-between px-4 py-2 shadow-md bg-white dark:bg-gray-900">
+    <div className=" saventail items-center justify-between px-4 py-2 shadow-md bg-white dark:bg-gray-900">
       <div className="flex items-center gap-2">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/messages")}
           className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
           aria-label="Go back"
         >
@@ -19,7 +19,7 @@ const CustomChannelHeader = ({ handleVideoCall, isGroupChat = false }) => {
         </button>
         <ChannelHeader />
       </div>
-      {isGroupChat && <CallButton handleVideoCall={handleVideoCall} />}
+      <CallButton handleVideoCall={handleVideoCall} />
     </div>
   );
 };

@@ -6,32 +6,33 @@ import axiosInstance from "../lib/axios";
 import ChatLoader from "../components/ChatLoader";
 import {
   Channel,
-  ChannelHeader,
   MessageList,
   MessageInput,
   Window,
   Thread,
   Chat,
-} from "stream-chat-react"; // Import necessary components from stream-chat-react if needed
+} from "stream-chat-react";
 import { StreamChat } from "stream-chat";
 import toast from "react-hot-toast";
 import CustomChannelHeader from "../components/CustomChannelHeader";
 
 const ChatPage = () => {
-  const { id: targetUserId } = useParams();
+  const { id: channelId } = useParams();
   const [chatClient, setChatClient] = useState(null);
   const [channel, setChannel] = useState(null);
   const [loading, setLoading] = useState(true);
   const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY;
   const { authUser } = useAuthUser();
+
   const { data: tokenData } = useQuery({
     queryKey: ["streamToken"],
     queryFn: async () => {
       const res = await axiosInstance.get("/chats/token");
-      return res.data.token; // ✅ Return just the token string
+      return res.data.token;
     },
     enabled: !!authUser,
   });
+
   useEffect(() => {
     const initChat = async () => {
       if (!authUser || !tokenData) return;
@@ -46,12 +47,7 @@ const ChatPage = () => {
           tokenData
         );
 
-        const sortedIds = [authUser._id, targetUserId].sort();
-        const channelId = `messaging-${sortedIds.join("-")}`;
-
-        const currChannel = client.channel("messaging", channelId, {
-          members: sortedIds,
-        });
+        const currChannel = client.channel("messaging", channelId);
         await currChannel.watch();
 
         setChannel(currChannel);
@@ -71,19 +67,24 @@ const ChatPage = () => {
         chatClient.disconnectUser();
       }
     };
-  }, [authUser, tokenData, targetUserId, STREAM_API_KEY]);
+  }, [authUser, tokenData, channelId, STREAM_API_KEY]);
+
   const handleVideoCall = () => {
     if (channel) {
-      const callUrl = `${window.location.origin}/call/${channel.id}`;
+      const callId = channel.id; // Use channel ID as call ID for consistency
+      const callUrl = `${window.location.origin}/call/${callId}`;
       channel.sendMessage({
-        text: `Video call link: ${callUrl}`,
+        text: `Group video call link: ${callUrl}`,
       });
-      toast.success("Video call link sent!");
+      toast.success("Group call link sent!");
+      window.open(callUrl, "_blank"); // Open call in new tab
     }
   };
+
   if (loading || !chatClient || !channel) {
     return <ChatLoader />;
   }
+
   return (
     <div className="h-[93vh]">
       <Chat client={chatClient}>

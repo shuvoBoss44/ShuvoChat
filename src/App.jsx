@@ -1,13 +1,11 @@
 import React from "react";
-import { Routes, Route, Navigate } from "react-router";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ChatPage from "./pages/Chat";
-import GroupChat from "./pages/GroupChat";
 import Call from "./pages/Call";
-import Friends from "./pages/Friends";
-import Profile from "./pages/Profile";
+import Messages from "./pages/Messages";
 import toast, { Toaster } from "react-hot-toast";
 import Loading from "./components/Loading";
 import useAuthUser from "./hooks/useAuthUser";
@@ -39,23 +37,11 @@ const App = () => {
           }
         />
         <Route
-          path="/friends"
+          path="/messages"
           element={
             authUser ? (
               <Layout showSidebar={true}>
-                <Friends />
-              </Layout>
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            authUser ? (
-              <Layout showSidebar={true}>
-                <Profile />
+                <Messages />
               </Layout>
             ) : (
               <Navigate to="/login" />
@@ -77,18 +63,6 @@ const App = () => {
           }
         />
         <Route
-          path="/group-chat/:id"
-          element={
-            authUser ? (
-              <Layout showSidebar={false}>
-                <GroupChat />
-              </Layout>
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
-        />
-        <Route
           path="/call/:id"
           element={authUser ? <Call /> : <Navigate to="/login" />}
         />
@@ -97,7 +71,6 @@ const App = () => {
           element={authUser ? <OnBoarding /> : <Navigate to="/signup" />}
         />
       </Routes>
-
       <Toaster />
     </div>
   );
