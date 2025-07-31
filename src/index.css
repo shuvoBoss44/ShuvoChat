@@ -3,14 +3,6 @@
   themes: all;
 }
 
-/* General styling for the chat container */
-.h-full {
-  height: 93vh; /* This is already in your component, but good to reinforce */
-  display: flex;
-  flex-direction: column;
-  background-color: #f0f2f5; /* Light background for the whole chat area */
-}
-
 /* Customize the overall chat window */
 .str-chat__container {
   border-radius: 8px;
