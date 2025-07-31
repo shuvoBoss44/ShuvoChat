@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "../lib/axios";
 import toast from "react-hot-toast";
 import { Image, Save, X, Edit2 } from "lucide-react";
 import PostList from "../components/PostList";
 import useAuthUser from "../hooks/useAuthUser";
+import { useQuery } from "@tanstack/react-query";
 
 const Profile = () => {
-  const { authUser } = useAuthUser();
+  const { authUser, isLoading: isLoadingAuthUser } = useAuthUser();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -21,27 +22,21 @@ const Profile = () => {
   const [imageFile, setImageFile] = useState(null);
   const [error, setError] = useState(null);
 
-  const { data: user, isLoading: isLoadingUser } = useQuery({
-    queryKey: ["userProfile", authUser?._id],
-    queryFn: async () => {
-      const response = await axiosInstance.get(`/user/profile/${authUser._id}`);
-      return response.data.user;
-    },
-    enabled: !!authUser,
-    onSuccess: data => {
+  // Initialize formData with authUser data
+  useEffect(() => {
+    if (authUser) {
       setFormData({
-        fullName: data.fullName || "",
-        bio: data.bio || "",
-        school: data.school || "",
-        college: data.college || "",
-        relationshipStatus: data.relationshipStatus || "",
-        profilePicture: data.profilePicture || "/default-avatar.png",
+        fullName: authUser.fullName || "",
+        bio: authUser.bio || "",
+        school: authUser.school || "",
+        college: authUser.college || "",
+        relationshipStatus: authUser.relationshipStatus || "",
+        profilePicture: authUser.profilePicture || "/default-avatar.png",
       });
-    },
-    onError: err =>
-      setError(err.response?.data?.message || "Failed to fetch profile"),
-  });
+    }
+  }, [authUser]);
 
+  // Fetch posts
   const { data: posts = [], isLoading: isLoadingPosts } = useQuery({
     queryKey: ["userPosts", authUser?._id],
     queryFn: async () => {
@@ -53,6 +48,7 @@ const Profile = () => {
       setError(err.response?.data?.message || "Failed to fetch posts"),
   });
 
+  // Update profile mutation
   const updateProfileMutation = useMutation({
     mutationFn: async () => {
       const form = new FormData();
@@ -73,9 +69,6 @@ const Profile = () => {
       setIsEditing(false);
       setImageFile(null);
       toast.success("Profile updated successfully on ShuvoMedia");
-      queryClient.invalidateQueries({
-        queryKey: ["userProfile", authUser._id],
-      });
       queryClient.invalidateQueries({ queryKey: ["authUser"] });
     },
     onError: err => {
@@ -113,7 +106,7 @@ const Profile = () => {
     updateProfileMutation.mutate();
   };
 
-  if (isLoadingUser) {
+  if (isLoadingAuthUser) {
     return (
       <div className="flex justify-center items-center h-screen">
         <span className="loading loading-spinner loading-md text-primary"></span>
@@ -282,25 +275,25 @@ const Profile = () => {
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-primary">Name:</span>
                     <span className="text-base-content">
-                      {user?.fullName || "Not set"}
+                      {authUser?.fullName || "Not set"}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-primary">Bio:</span>
                     <span className="text-base-content">
-                      {user?.bio || "No bio provided"}
+                      {authUser?.bio || "No bio provided"}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-primary">School:</span>
                     <span className="text-base-content">
-                      {user?.school || "Not specified"}
+                      {authUser?.school || "Not specified"}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-primary">College:</span>
                     <span className="text-base-content">
-                      {user?.college || "Not specified"}
+                      {authUser?.college || "Not specified"}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -308,7 +301,7 @@ const Profile = () => {
                       Relationship Status:
                     </span>
                     <span className="text-base-content">
-                      {user?.relationshipStatus || "Not specified"}
+                      {authUser?.relationshipStatus || "Not specified"}
                     </span>
                   </div>
                 </div>

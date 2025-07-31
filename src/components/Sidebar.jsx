@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 import useThemeStore from "../store/useThemeStore";
 import { useState } from "react";
-import { THEMES } from "../constants";
 
 const Sidebar = () => {
   const { authUser } = useAuthUser();
@@ -19,6 +18,8 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const { theme, setTheme } = useThemeStore();
   const [isThemeOpen, setIsThemeOpen] = useState(false);
+
+  const themes = ["light", "dark", "cupcake", "bumblebee", "emerald"];
 
   return (
     <aside className="w-64 bg-base-200 border-r border-base-300 hidden lg:flex flex-col h-screen sticky top-0">
@@ -80,35 +81,17 @@ const Sidebar = () => {
           </button>
           {isThemeOpen && (
             <ul className="absolute bottom-full left-0 w-full bg-base-100 border border-base-300 rounded-lg shadow-lg mb-2">
-              {THEMES.map(themeOption => (
-                <button
-                  key={themeOption.name}
-                  className={`
-                w-full px-4 py-2 rounded-lg flex items-center gap-3 transition-all duration-200
-                ${
-                  theme === themeOption.name
-                    ? "bg-gradient-to-r from-primary to-secondary text-white"
-                    : "hover:bg-base-300 text-base-content"
-                }
-              `}
-                  onClick={() => setTheme(themeOption.name)}
-                  aria-label={`Select ${themeOption.label} theme`}
+              {themes.map(t => (
+                <li
+                  key={t}
+                  className="p-2 hover:bg-primary hover:text-white cursor-pointer"
+                  onClick={() => {
+                    setTheme(t);
+                    setIsThemeOpen(false);
+                  }}
                 >
-                  <PaletteIcon className="size-4" />
-                  <span className="text-sm font-medium flex-1 text-left">
-                    {themeOption.label}
-                  </span>
-                  {/* THEME PREVIEW COLORS */}
-                  <div className="flex gap-1">
-                    {themeOption.colors.map((color, i) => (
-                      <span
-                        key={i}
-                        className="size-3 rounded-full border border-base-300"
-                        style={{ backgroundColor: color }}
-                      />
-                    ))}
-                  </div>
-                </button>
+                  {t.charAt(0).toUpperCase() + t.slice(1)}
+                </li>
               ))}
             </ul>
           )}
