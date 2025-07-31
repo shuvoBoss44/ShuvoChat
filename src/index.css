@@ -1,0 +1,129 @@
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: all;
+}
+
+/* General styling for the chat container */
+.h-full {
+  height: 93vh; /* This is already in your component, but good to reinforce */
+  display: flex;
+  flex-direction: column;
+  background-color: #f0f2f5; /* Light background for the whole chat area */
+}
+
+/* Customize the overall chat window */
+.str-chat__container {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden; /* Ensures rounded corners are applied to children */
+  background-color: #ffffff; /* White background for the chat window itself */
+  display: flex; /* Adjust display for flexible layout */
+  flex-direction: column;
+  height: 100%; /* Make sure it takes full height of its parent */
+}
+
+/* Channel Header Styling */
+.str-chat__header-livestream {
+  background-color: #0056b3; /* A nice blue for the header */
+  color: white;
+  padding: 15px 20px;
+  border-bottom: 1px solid #004085;
+  border-radius: 8px 8px 0 0; /* Match parent's border-radius */
+}
+
+.str-chat__header-livestream-left__title {
+  font-size: 1.2em;
+  font-weight: 600;
+}
+
+/* Message List Styling */
+.str-chat__message-list {
+  background-color: #e5ddd5; /* WhatsApp-like background for messages */
+  padding: 10px;
+  flex-grow: 1; /* Allows message list to take up available space */
+  overflow-y: auto; /* Enable scrolling if messages overflow */
+}
+
+/* Message Input Styling */
+.str-chat__message-input {
+  background-color: #f8f8f8; /* Light grey for the input area */
+  padding: 10px 15px;
+  border-top: 1px solid #e0e0e0;
+  border-radius: 0 0 8px 8px; /* Match parent's border-radius */
+}
+
+.str-chat__message-input-textarea {
+  border: 1px solid #cccccc;
+  border-radius: 20px; /* Rounded input field */
+  padding: 10px 15px;
+  font-size: 0.95em;
+  resize: none; /* Prevent manual resizing */
+}
+
+.str-chat__send-button {
+  background-color: #007bff; /* Blue send button */
+  color: white;
+  border-radius: 50%; /* Circular button */
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.str-chat__send-button:hover {
+  background-color: #0056b3;
+}
+
+/* Styling for individual messages (example) */
+.str-chat__message--me .str-chat__message-bubble {
+  background-color: #dcf8c6; /* Green bubble for sent messages */
+  color: #333;
+  border-radius: 12px 12px 0 12px;
+  max-width: 70%;
+  margin-left: auto; /* Align to right */
+}
+
+.str-chat__message--other .str-chat__message-bubble {
+  background-color: #ffffff; /* White bubble for received messages */
+  color: #333;
+  border-radius: 12px 12px 12px 0;
+  max-width: 70%;
+  margin-right: auto; /* Align to left */
+}
+
+.str-chat__message-text {
+  font-size: 1em;
+  line-height: 1.4;
+}
+
+/* Styling for individual messages (example) */
+.str-chat__message--me .str-chat__message-bubble {
+  background-color: #dcf8c6; /* Green bubble for sent messages */
+  color: #333;
+  border-radius: 12px 12px 0 12px;
+  max-width: 100%; /* Increased from 70% to 85% */
+  margin-left: auto; /* Align to right */
+}
+
+.str-chat__message--other .str-chat__message-bubble {
+  background-color: #ffffff; /* White bubble for received messages */
+  color: #333;
+  border-radius: 12px 12px 12px 0;
+  max-width: 100%; /* Increased from 70% to 85% */
+  margin-right: auto; /* Align to left */
+}
+
+/* ... rest of your CSS ... */
+/* Adjusting padding for message wrapper to remove excess space */
+.str-chat__li {
+  padding: 5px 0; /* Reduce vertical padding between messages */
+}
+
+/* Hide Stream Chat's default branding if not desired */
+/* .str-chat__footer {
+    display: none;
+} */
