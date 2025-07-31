@@ -6,6 +6,8 @@ import Signup from "./pages/Signup";
 import ChatPage from "./pages/Chat";
 import GroupChat from "./pages/GroupChat";
 import Call from "./pages/Call";
+import Friends from "./pages/Friends";
+import Profile from "./pages/Profile";
 import toast, { Toaster } from "react-hot-toast";
 import Loading from "./components/Loading";
 import useAuthUser from "./hooks/useAuthUser";
@@ -15,10 +17,12 @@ import useThemeStore from "./store/useThemeStore";
 
 const App = () => {
   const { isLoading, authUser } = useAuthUser();
-  const { theme, setTheme } = useThemeStore();
+  const { theme } = useThemeStore();
+
   if (isLoading) {
     return <Loading />;
   }
+
   return (
     <div className="h-screen" data-theme={theme}>
       <Routes>
@@ -28,6 +32,30 @@ const App = () => {
             authUser ? (
               <Layout showSidebar={true}>
                 <Home />
+              </Layout>
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+        <Route
+          path="/friends"
+          element={
+            authUser ? (
+              <Layout showSidebar={true}>
+                <Friends />
+              </Layout>
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            authUser ? (
+              <Layout showSidebar={true}>
+                <Profile />
               </Layout>
             ) : (
               <Navigate to="/login" />
@@ -49,7 +77,7 @@ const App = () => {
           }
         />
         <Route
-          path="/group-chats/:id"
+          path="/group-chat/:id"
           element={
             authUser ? (
               <Layout showSidebar={false}>
