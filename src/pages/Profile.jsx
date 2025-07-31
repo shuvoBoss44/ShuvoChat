@@ -35,7 +35,7 @@ const Profile = () => {
         school: data.school || "",
         college: data.college || "",
         relationshipStatus: data.relationshipStatus || "",
-        profilePicture: data.profilePicture || "",
+        profilePicture: data.profilePicture || "/default-avatar.png",
       });
     },
     onError: err =>
@@ -72,11 +72,11 @@ const Profile = () => {
     onSuccess: () => {
       setIsEditing(false);
       setImageFile(null);
-      toast.success("Profile updated successfully");
+      toast.success("Profile updated successfully on ShuvoMedia");
       queryClient.invalidateQueries({
         queryKey: ["userProfile", authUser._id],
       });
-      queryClient.invalidateQueries({ queryKey: ["authUser"] }); // Update sidebar avatar
+      queryClient.invalidateQueries({ queryKey: ["authUser"] });
     },
     onError: err => {
       setError(err.response?.data?.message || "Failed to update profile");
@@ -94,6 +94,10 @@ const Profile = () => {
       file &&
       ["image/jpeg", "image/png", "image/gif", "image/jpg"].includes(file.type)
     ) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("Image size must not exceed 10MB");
+        return;
+      }
       setImageFile(file);
       setFormData(prev => ({
         ...prev,
@@ -133,87 +137,122 @@ const Profile = () => {
           </div>
         )}
 
-        <div className="card bg-base-100 border border-primary/25 shadow-lg p-6 mb-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-primary">Your Profile</h2>
+        <div className="card bg-base-200 border border-base-300 shadow-xl p-6 mb-8 hover:shadow-2xl transition-shadow duration-300">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+              Your ShuvoMedia Profile
+            </h2>
             <button
-              className="btn btn-primary btn-sm"
+              className="btn btn-ghost btn-sm text-primary hover:bg-primary/10"
               onClick={() => setIsEditing(!isEditing)}
               aria-label={isEditing ? "Cancel editing" : "Edit profile"}
             >
               {isEditing ? (
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               ) : (
-                <Edit2 className="w-4 h-4" />
+                <Edit2 className="w-5 h-5" />
               )}
               {isEditing ? "Cancel" : "Edit"}
             </button>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-6">
-            <div className="flex-1">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-1 flex justify-center">
+              <div className="avatar relative group">
+                <div className="w-40 h-40 rounded-full border border-primary/50 overflow-hidden transition-transform duration-300 group-hover:scale-105">
+                  <img
+                    src={formData.profilePicture || "/default-avatar.png"}
+                    alt="Profile picture"
+                    className="object-cover w-full h-full"
+                    onError={e => (e.target.src = "/default-avatar.png")}
+                  />
+                </div>
+                {isEditing && (
+                  <label className="absolute bottom-2 right-2 btn btn-ghost btn-circle btn-sm bg-base-100/80 hover:bg-base-100">
+                    <Image className="w-4 h-4 text-primary" />
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/gif,image/jpg"
+                      className="hidden"
+                      onChange={handleImageChange}
+                    />
+                  </label>
+                )}
+              </div>
+            </div>
+            <div className="md:col-span-2">
               {isEditing ? (
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="form-control">
                     <label className="label">
-                      <span className="label-text">Full Name</span>
+                      <span className="label-text font-semibold text-primary">
+                        Full Name
+                      </span>
                     </label>
                     <input
                       type="text"
                       name="fullName"
                       value={formData.fullName}
                       onChange={handleInputChange}
-                      className="input input-bordered w-full"
+                      className="input input-bordered w-full focus:ring-2 focus:ring-primary"
                       placeholder="Enter your full name"
                     />
                   </div>
                   <div className="form-control">
                     <label className="label">
-                      <span className="label-text">Bio</span>
+                      <span className="label-text font-semibold text-primary">
+                        Bio
+                      </span>
                     </label>
                     <textarea
                       name="bio"
                       value={formData.bio}
                       onChange={handleInputChange}
-                      className="textarea textarea-bordered w-full"
+                      className="textarea textarea-bordered w-full focus:ring-2 focus:ring-primary"
                       placeholder="Tell us about yourself"
                     ></textarea>
                   </div>
                   <div className="form-control">
                     <label className="label">
-                      <span className="label-text">School</span>
+                      <span className="label-text font-semibold text-primary">
+                        School
+                      </span>
                     </label>
                     <input
                       type="text"
                       name="school"
                       value={formData.school}
                       onChange={handleInputChange}
-                      className="input input-bordered w-full"
+                      className="input input-bordered w-full focus:ring-2 focus:ring-primary"
                       placeholder="Enter your school"
                     />
                   </div>
                   <div className="form-control">
                     <label className="label">
-                      <span className="label-text">College</span>
+                      <span className="label-text font-semibold text-primary">
+                        College
+                      </span>
                     </label>
                     <input
                       type="text"
                       name="college"
                       value={formData.college}
                       onChange={handleInputChange}
-                      className="input input-bordered w-full"
+                      className="input input-bordered w-full focus:ring-2 focus:ring-primary"
                       placeholder="Enter your college"
                     />
                   </div>
                   <div className="form-control">
                     <label className="label">
-                      <span className="label-text">Relationship Status</span>
+                      <span className="label-text font-semibold text-primary">
+                        Relationship Status
+                      </span>
                     </label>
                     <select
                       name="relationshipStatus"
                       value={formData.relationshipStatus}
                       onChange={handleInputChange}
-                      className="select select-bordered w-full"
+                      className="select select-bordered w-full focus:ring-2 focus:ring-primary"
                     >
                       <option value="">Select status</option>
                       <option value="Single">Single</option>
@@ -224,80 +263,63 @@ const Profile = () => {
                       <option value="Complicated">Complicated</option>
                     </select>
                   </div>
-                  <div className="form-control">
-                    <label className="label">
-                      <span className="label-text">Profile Picture</span>
-                    </label>
-                    <label className="btn btn-ghost btn-sm">
-                      <Image className="w-5 h-5" />
-                      <span>Choose Image</span>
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/png,image/gif,image/jpg"
-                        className="hidden"
-                        onChange={handleImageChange}
-                      />
-                    </label>
-                    {imageFile && (
-                      <span className="text-sm ml-4">{imageFile.name}</span>
-                    )}
-                  </div>
                   <button
                     type="submit"
-                    className="btn btn-primary mt-4"
+                    className="btn btn-primary mt-4 hover:bg-gradient-to-r hover:from-primary hover:to-secondary"
                     disabled={updateProfileMutation.isPending}
                   >
                     {updateProfileMutation.isPending ? (
                       <span className="loading loading-spinner loading-xs"></span>
                     ) : (
                       <>
-                        <Save className="w-4 h-4 mr-2" /> Save
+                        <Save className="w-5 h-5 mr-2" /> Save Profile
                       </>
                     )}
                   </button>
                 </form>
               ) : (
                 <div className="space-y-4">
-                  <div>
-                    <span className="font-semibold">Name:</span>{" "}
-                    {user?.fullName}
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-primary">Name:</span>
+                    <span className="text-base-content">
+                      {user?.fullName || "Not set"}
+                    </span>
                   </div>
-                  <div>
-                    <span className="font-semibold">Bio:</span>{" "}
-                    {user?.bio || "No bio provided"}
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-primary">Bio:</span>
+                    <span className="text-base-content">
+                      {user?.bio || "No bio provided"}
+                    </span>
                   </div>
-                  <div>
-                    <span className="font-semibold">School:</span>{" "}
-                    {user?.school || "Not specified"}
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-primary">School:</span>
+                    <span className="text-base-content">
+                      {user?.school || "Not specified"}
+                    </span>
                   </div>
-                  <div>
-                    <span className="font-semibold">College:</span>{" "}
-                    {user?.college || "Not specified"}
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-primary">College:</span>
+                    <span className="text-base-content">
+                      {user?.college || "Not specified"}
+                    </span>
                   </div>
-                  <div>
-                    <span className="font-semibold">Relationship Status:</span>{" "}
-                    {user?.relationshipStatus || "Not specified"}
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-primary">
+                      Relationship Status:
+                    </span>
+                    <span className="text-base-content">
+                      {user?.relationshipStatus || "Not specified"}
+                    </span>
                   </div>
                 </div>
               )}
             </div>
-            <div className="flex-shrink-0">
-              <div className="avatar">
-                <div className="w-32 md:w-48 rounded-full border border-primary/50 overflow-hidden">
-                  <img
-                    src={formData.profilePicture || "/default-avatar.png"}
-                    alt="Profile picture"
-                    className="object-cover w-full h-full"
-                  />
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
-        <div className="card bg-base-100 border border-primary/25 shadow-lg p-6">
-          <h2 className="text-xl font-semibold text-primary mb-4">
-            Your Posts
+        <div className="card bg-base-200 border border-base-300 shadow-xl p-6 hover:shadow-2xl transition-shadow duration-300">
+          <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary mb-4">
+            Your ShuvoMedia Posts
           </h2>
           {isLoadingPosts ? (
             <div className="flex justify-center items-center h-64">

@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import useAuthUser from "../hooks/useAuthUser";
 import { HomeIcon, UsersIcon, UserIcon, Menu, X } from "lucide-react";
 import { useState } from "react";
+import ThemeSelector from "./ThemeSelector";
 
 const Sidebar = () => {
   const { authUser } = useAuthUser();
@@ -19,7 +20,11 @@ const Sidebar = () => {
         onClick={toggleSidebar}
         aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
       >
-        {isOpen ? <X className="size-6" /> : <Menu className="size-6" />}
+        {isOpen ? (
+          <X className="size-6 text-primary" />
+        ) : (
+          <Menu className="size-6 text-primary" />
+        )}
       </button>
       <aside
         className={`fixed top-0 left-0 h-screen w-64 bg-base-200 border-r border-base-300 flex flex-col transition-transform duration-300 ${
@@ -28,9 +33,9 @@ const Sidebar = () => {
       >
         <div className="p-5 border-b border-base-300">
           <Link to="/" className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="ShuvoChat Logo" className="size-9" />
+            <img src="/logo.png" alt="ShuvoMedia Logo" className="size-9" />
             <span className="text-2xl font-bold font-mono bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary tracking-wider">
-              ShuvoChat
+              ShuvoMedia
             </span>
           </Link>
         </div>
@@ -43,7 +48,7 @@ const Sidebar = () => {
             }`}
             onClick={() => setIsOpen(false)}
           >
-            <HomeIcon className="size-5 text-base-content opacity-70" />
+            <HomeIcon className="size-5 text-primary opacity-70" />
             <span>Home</span>
           </Link>
           <Link
@@ -53,7 +58,7 @@ const Sidebar = () => {
             }`}
             onClick={() => setIsOpen(false)}
           >
-            <UsersIcon className="size-5 text-base-content opacity-70" />
+            <UsersIcon className="size-5 text-primary opacity-70" />
             <span>Friends</span>
           </Link>
           <Link
@@ -63,30 +68,39 @@ const Sidebar = () => {
             }`}
             onClick={() => setIsOpen(false)}
           >
-            <UserIcon className="size-5 text-base-content opacity-70" />
+            <UserIcon className="size-5 text-primary opacity-70" />
             <span>Profile</span>
           </Link>
         </nav>
 
-        <div
-          className="p-4 border-t border-base-300 mt-auto cursor-pointer hover:bg-base-300 transition-colors"
-          onClick={() => {
-            navigate("/onboarding");
-            setIsOpen(false);
-          }}
-        >
+        <div className="p-4 border-t border-base-300 mt-auto">
           <div className="flex items-center gap-3">
-            <div className="avatar">
-              <div className="w-10 rounded-full">
-                <img src={authUser?.profilePicture} alt="User Avatar" />
+            <ThemeSelector />
+            <div
+              className="flex items-center gap-3 cursor-pointer hover:bg-base-300 transition-colors"
+              onClick={() => {
+                navigate("/onboarding");
+                setIsOpen(false);
+              }}
+            >
+              <div className="avatar">
+                <div className="w-10 rounded-full border border-primary/50 overflow-hidden">
+                  <img
+                    src={authUser?.profilePicture || "/default-avatar.png"}
+                    alt="User Avatar"
+                    className="object-fill"
+                  />
+                </div>
               </div>
-            </div>
-            <div className="flex-1">
-              <p className="font-semibold text-sm">{authUser?.fullName}</p>
-              <p className="text-xs text-success flex items-center gap-1">
-                <span className="size-2 rounded-full bg-success inline-block" />
-                Online
-              </p>
+              <div className="flex-1">
+                <p className="font-semibold text-sm text-primary">
+                  {authUser?.fullName}
+                </p>
+                <p className="text-xs text-success flex items-center gap-1">
+                  <span className="size-2 rounded-full bg-success inline-block" />
+                  Online
+                </p>
+              </div>
             </div>
           </div>
         </div>

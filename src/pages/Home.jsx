@@ -1,11 +1,14 @@
 import React, { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "../lib/axios";
 import toast from "react-hot-toast";
 import PostList from "../components/PostList";
-import { Image } from "lucide-react";
+import { Image, X } from "lucide-react";
+import useAuthUser from "../hooks/useAuthUser";
 
 const Home = () => {
+  const { authUser } = useAuthUser();
+  const queryClient = useQueryClient();
   const [content, setContent] = useState("");
   const [image, setImage] = useState(null);
   const [error, setError] = useState(null);
@@ -39,8 +42,9 @@ const Home = () => {
     onSuccess: () => {
       setContent("");
       setImage(null);
-      toast.success("Post created successfully");
+      toast.success("Post created successfully on ShuvoMedia");
       queryClient.invalidateQueries({ queryKey: ["friendsPosts"] });
+      queryClient.invalidateQueries({ queryKey: ["userPosts", authUser._id] });
     },
     onError: err => {
       setError(err.response?.data?.message || "Failed to create post");
@@ -53,10 +57,23 @@ const Home = () => {
       file &&
       ["image/jpeg", "image/png", "image/gif", "image/jpg"].includes(file.type)
     ) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("Image size must not exceed 10MB");
+        return;
+      }
       setImage(file);
     } else {
       toast.error("Please select a valid image (JPEG, PNG, GIF)");
     }
+  };
+
+  const handleSubmit = e => {
+    e.preventDefault();
+    if (!content && !image) {
+      setError("Please provide text or an image to post");
+      return;
+    }
+    createPostMutation.mutate();
   };
 
   return (
@@ -75,20 +92,22 @@ const Home = () => {
           </div>
         )}
 
-        <div className="card bg-base-100 border border-primary/25 shadow-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold text-primary mb-4">
-            Create a Post
+        <div className="card bg-base-200 border border-base-300 shadow-xl p-6 mb-8 hover:shadow-2xl transition-shadow duration-300">
+          <h2 className="text-xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+            Share something on ShuvoMedia
           </h2>
-          <div className="form-control">
-            <textarea
-              className="textarea textarea-bordered w-full mb-4"
-              placeholder="What's on your mind?"
-              value={content}
-              onChange={e => setContent(e.target.value)}
-            ></textarea>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="form-control">
+              <textarea
+                className="textarea textarea-bordered w-full focus:ring-2 focus:ring-primary"
+                placeholder="What's on your mind?"
+                value={content}
+                onChange={e => setContent(e.target.value)}
+              ></textarea>
+            </div>
             <div className="flex items-center gap-4">
-              <label className="btn btn-ghost btn-sm">
-                <Image className="w-5 h-5" />
+              <label className="btn btn-ghost btn-sm flex items-center gap-2">
+                <Image className="w-5 h-5 text-primary" />
                 <span>Add Image</span>
                 <input
                   type="file"
@@ -97,12 +116,25 @@ const Home = () => {
                   onChange={handleImageChange}
                 />
               </label>
-              {image && <span className="text-sm">{image.name}</span>}
+              {image && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-base-content/70">
+                    {image.name}
+                  </span>
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => setImage(null)}
+                    aria-label="Remove image"
+                  >
+                    <X className="w-4 h-4 text-error" />
+                  </button>
+                </div>
+              )}
             </div>
             <button
-              className="btn btn-primary mt-4"
-              onClick={() => createPostMutation.mutate()}
-              disabled={createPostMutation.isPending || (!content && !image)}
+              type="submit"
+              className="btn btn-primary w-full hover:bg-gradient-to-r hover:from-primary hover:to-secondary"
+              disabled={createPostMutation.isPending}
             >
               {createPostMutation.isPending ? (
                 <span className="loading loading-spinner loading-xs"></span>
@@ -110,16 +142,18 @@ const Home = () => {
                 "Post"
               )}
             </button>
-          </div>
+          </form>
         </div>
 
-        {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <span className="loading loading-spinner loading-md text-primary"></span>
-          </div>
-        ) : (
-          <PostList posts={posts} />
-        )}
+        <div className="space-y-6">
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <span className="loading loading-spinner loading-md text-primary"></span>
+            </div>
+          ) : (
+            <PostList posts={posts} />
+          )}
+        </div>
       </div>
     </div>
   );

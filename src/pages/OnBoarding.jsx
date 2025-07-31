@@ -189,7 +189,7 @@ const OnBoarding = () => {
         <div className="text-center mt-4">
           <button
             className="text-sm text-primary hover:underline"
-            onClick={() => navigate("/dashboard")}
+            onClick={() => navigate("/")}
           >
             Skip for now
           </button>
