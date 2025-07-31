@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import useSignUp from "../hooks/useSignUp";
+import useSignUp from "../hooks/useSignup";
 import { Link, useNavigate } from "react-router-dom";
 import useThemeStore from "../store/useThemeStore";
 
