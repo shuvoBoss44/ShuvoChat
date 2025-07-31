@@ -49,7 +49,7 @@ const App = () => {
           }
         />
         <Route
-          path="/group-chat/:id"
+          path="/group-chats/:id"
           element={
             authUser ? (
               <Layout showSidebar={false}>
