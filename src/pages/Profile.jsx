@@ -48,38 +48,30 @@ const Profile = () => {
       setError(err.response?.data?.message || "Failed to fetch posts"),
   });
 
-  // Update profile mutation
+  // ** Simplified Update profile mutation **
   const updateProfileMutation = useMutation({
     mutationFn: async () => {
+      // Create a new FormData object
       const form = new FormData();
-      // Only append fields that have changed or are non-empty
-      if (formData.fullName && formData.fullName !== authUser?.fullName) {
-        form.append("fullName", formData.fullName);
-      }
-      if (formData.bio && formData.bio !== authUser?.bio) {
-        form.append("bio", formData.bio);
-      }
-      if (formData.school && formData.school !== authUser?.school) {
-        form.append("school", formData.school);
-      }
-      if (formData.college && formData.college !== authUser?.college) {
-        form.append("college", formData.college);
-      }
-      if (
-        formData.relationshipStatus &&
-        formData.relationshipStatus !== authUser?.relationshipStatus
-      ) {
-        form.append("relationshipStatus", formData.relationshipStatus);
-      }
+
+      // Append all formData fields to the form
+      // The backend will handle which fields to update
+      form.append("fullName", formData.fullName);
+      form.append("bio", formData.bio);
+      form.append("school", formData.school);
+      form.append("college", formData.college);
+      form.append("relationshipStatus", formData.relationshipStatus);
+
+      // Only append the image file if one has been selected
       if (imageFile) {
         form.append("profilePicture", imageFile);
       }
 
-      // Debug FormData contents
       const formEntries = [...form.entries()];
       console.log("FormData entries:", formEntries);
 
-      // Prevent submission if FormData is empty
+      // We still need to handle the case where the form is empty,
+      // as the backend requires at least one field to be present.
       if (formEntries.length === 0) {
         throw new Error("No changes to submit");
       }
@@ -128,17 +120,6 @@ const Profile = () => {
 
   const handleSubmit = e => {
     e.preventDefault();
-    if (
-      !formData.fullName &&
-      !formData.bio &&
-      !formData.school &&
-      !formData.college &&
-      !formData.relationshipStatus &&
-      !imageFile
-    ) {
-      toast.error("Please provide at least one field to update");
-      return;
-    }
     updateProfileMutation.mutate();
   };
 
