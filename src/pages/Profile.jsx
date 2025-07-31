@@ -52,13 +52,37 @@ const Profile = () => {
   const updateProfileMutation = useMutation({
     mutationFn: async () => {
       const form = new FormData();
-      if (formData.fullName) form.append("fullName", formData.fullName);
-      if (formData.bio) form.append("bio", formData.bio);
-      if (formData.school) form.append("school", formData.school);
-      if (formData.college) form.append("college", formData.college);
-      if (formData.relationshipStatus)
+      // Only append fields that have changed or are non-empty
+      if (formData.fullName && formData.fullName !== authUser?.fullName) {
+        form.append("fullName", formData.fullName);
+      }
+      if (formData.bio && formData.bio !== authUser?.bio) {
+        form.append("bio", formData.bio);
+      }
+      if (formData.school && formData.school !== authUser?.school) {
+        form.append("school", formData.school);
+      }
+      if (formData.college && formData.college !== authUser?.college) {
+        form.append("college", formData.college);
+      }
+      if (
+        formData.relationshipStatus &&
+        formData.relationshipStatus !== authUser?.relationshipStatus
+      ) {
         form.append("relationshipStatus", formData.relationshipStatus);
-      if (imageFile) form.append("profilePicture", imageFile);
+      }
+      if (imageFile) {
+        form.append("profilePicture", imageFile);
+      }
+
+      // Debug FormData contents
+      const formEntries = [...form.entries()];
+      console.log("FormData entries:", formEntries);
+
+      // Prevent submission if FormData is empty
+      if (formEntries.length === 0) {
+        throw new Error("No changes to submit");
+      }
 
       const response = await axiosInstance.patch("/user/updateProfile", form, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -72,7 +96,8 @@ const Profile = () => {
       queryClient.invalidateQueries({ queryKey: ["authUser"] });
     },
     onError: err => {
-      setError(err.response?.data?.message || "Failed to update profile");
+      setError(err.message || "Failed to update profile");
+      console.error("Update profile error:", err);
     },
   });
 
@@ -103,6 +128,17 @@ const Profile = () => {
 
   const handleSubmit = e => {
     e.preventDefault();
+    if (
+      !formData.fullName &&
+      !formData.bio &&
+      !formData.school &&
+      !formData.college &&
+      !formData.relationshipStatus &&
+      !imageFile
+    ) {
+      toast.error("Please provide at least one field to update");
+      return;
+    }
     updateProfileMutation.mutate();
   };
 
