@@ -1,15 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import useAuthUser from "../hooks/useAuthUser";
-import {
-  BellIcon,
-  HomeIcon,
-  ShipWheelIcon,
-  MessageSquare,
-  Users,
-  User,
-  Menu,
-  X,
-} from "lucide-react";
+import { HomeIcon, ShipWheelIcon, Users, User, Menu, X } from "lucide-react";
 import { useState } from "react";
 import ThemeSelector from "../components/ThemeSelector";
 
@@ -41,7 +32,7 @@ const Sidebar = () => {
       <aside
         className={`w-64 bg-base-200 border-r border-base-300 flex flex-col h-screen fixed lg:sticky top-0 left-0 z-40 transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0`}
+        } lg:translate-x-0 overflow-y-auto`}
       >
         <div className="p-5 border-b border-base-300">
           <Link
@@ -66,16 +57,6 @@ const Sidebar = () => {
           >
             <HomeIcon className="size-5 opacity-70" />
             <span>Home</span>
-          </Link>
-          <Link
-            to="/messages"
-            className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case text-base-content hover:bg-primary/10 ${
-              currentPath === "/messages" ? "btn-active bg-primary/20" : ""
-            }`}
-            onClick={() => setIsOpen(false)}
-          >
-            <MessageSquare className="size-5 opacity-70" />
-            <span>Messages</span>
           </Link>
           <Link
             to="/friends"

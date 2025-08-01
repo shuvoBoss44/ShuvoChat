@@ -14,7 +14,6 @@ import useAuthUser from "./hooks/useAuthUser";
 import OnBoarding from "./pages/OnBoarding";
 import Layout from "./components/Layout";
 import useThemeStore from "./store/useThemeStore";
-import Messages from "./pages/Messages";
 
 const App = () => {
   const { isLoading, authUser } = useAuthUser();
@@ -57,18 +56,6 @@ const App = () => {
             authUser ? (
               <Layout showSidebar={true}>
                 <Profile />
-              </Layout>
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
-        />
-        <Route
-          path="/messages"
-          element={
-            authUser ? (
-              <Layout showSidebar={true}>
-                <Messages />
               </Layout>
             ) : (
               <Navigate to="/login" />
