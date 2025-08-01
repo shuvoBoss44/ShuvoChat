@@ -11,7 +11,7 @@ const CustomChannelHeader = ({ handleVideoCall }) => {
     <div className="flex items-center justify-between px-4 py-2 shadow-md bg-white dark:bg-gray-900">
       <div className="flex items-center gap-2">
         <button
-          onClick={() => navigate("/messages")}
+          onClick={() => navigate(-1)}
           className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
           aria-label="Go back"
         >
