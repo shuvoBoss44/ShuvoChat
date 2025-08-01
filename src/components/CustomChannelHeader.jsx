@@ -19,7 +19,7 @@ const CustomChannelHeader = ({ handleVideoCall }) => {
         </button>
         <ChannelHeader className="text-lg font-semibold text-gray-900 dark:text-gray-100" />
       </div>
-      <div className="flex items-center mr-2">
+      <div className="flex items-center mr-4">
         <CallButton handleVideoCall={handleVideoCall} />
       </div>
     </div>
