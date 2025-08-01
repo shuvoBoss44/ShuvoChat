@@ -60,10 +60,14 @@ const Profile = () => {
       if (imageFile) {
         form.append("profilePicture", imageFile);
       }
-      console.log(form);
-      const response = await axiosInstance.patch("/user/updateProfile", form, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      console.log(formData);
+      const response = await axiosInstance.patch(
+        "/user/updateProfile",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
       return response.data;
     },
     onSuccess: () => {
