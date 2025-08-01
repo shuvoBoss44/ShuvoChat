@@ -66,27 +66,19 @@ const OnBoarding = () => {
         data.append("profilePicture", formData.profilePicture);
 
       const response = await axiosInstance.patch("/user/updateProfile", data, {
-        withCredentials: true,
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
+
       if (response.status !== 200) {
         throw new Error("Failed to update profile");
       }
-
-      // Update preview with Cloudinary URL
-      setPreview(response.data.user.profilePicture || authUser?.profilePicture);
-      toast.success("Profile updated successfully!");
+      toast.success("Profile updated successfully");
       navigate("/");
     } catch (err) {
-      const message =
-        err.response?.data?.message ||
-        err.message ||
-        "Failed to update profile";
-      setError(message);
-      toast.error(message);
-      console.error("OnBoarding error:", err);
+      console.error("Update profile error:", err.response?.data || err);
+      setError(err.response?.data?.message || "Failed to update profile");
     } finally {
       setIsPending(false);
     }
@@ -106,7 +98,7 @@ const OnBoarding = () => {
             Add a bio and profile picture to personalize your ShuvoChat
             experience.
           </p>
-          <h2 className="text-2xl font-semibold text-primary mt-2">
+          <h2 className="text-2xl font-semibold text-primary">
             Welcome {authUser?.fullName || "User"}!
           </h2>
         </div>
@@ -123,14 +115,19 @@ const OnBoarding = () => {
               <span className="label-text font-medium">Profile Picture</span>
             </label>
             <div className="flex flex-col items-center gap-4">
-              <img
-                src={
-                  preview || authUser?.profilePicture || "/default-avatar.png"
-                }
-                alt="Profile picture preview"
-                className="w-24 h-24 rounded-full object-cover border border-primary/50"
-                onError={e => (e.target.src = "/default-avatar.png")}
-              />
+              {preview ? (
+                <img
+                  src={preview}
+                  alt="Profile picture preview"
+                  className="w-24 h-24 rounded-full object-cover border border-primary/50"
+                />
+              ) : (
+                <img
+                  src={authUser?.profilePicture || "/default-avatar.png"}
+                  alt="Profile picture preview"
+                  className="w-24 h-24 rounded-full object-cover border border-primary/50"
+                />
+              )}
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/gif,image/jpg"

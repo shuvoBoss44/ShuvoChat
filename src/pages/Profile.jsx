@@ -87,31 +87,19 @@ const Profile = () => {
         form.append("profilePicture", imageFile);
       }
 
-      const response = await axiosInstance.patch("/user/updateProfile", form);
-      if (response.status !== 200) {
-        throw new Error("Failed to update profile");
-      }
+      const response = await axiosInstance.patch("/user/updateProfile", form, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
-      // Update formData with Cloudinary URL from response
-      setFormData(prev => ({
-        ...prev,
-        profilePicture:
-          response.data.user.profilePicture || prev.profilePicture,
-      }));
       setIsEditing(false);
       setImageFile(null);
       toast.success("Profile updated successfully on ShuvoMedia");
-
-      // Invalidate authUser query
-      await queryClient.invalidateQueries({ queryKey: ["authUser"] });
+      queryClient.invalidateQueries({ queryKey: ["authUser"] });
     } catch (err) {
-      const message =
-        err.response?.data?.message ||
-        err.message ||
-        "Failed to update profile";
-      setError(message);
-      console.error("Update profile error:", err);
-      toast.error(message);
+      console.error("Update profile error:", err.response?.data || err);
+      setError(err.response?.data?.message || "Failed to update profile");
     } finally {
       setIsPending(false);
     }
