@@ -1,3 +1,4 @@
+// Post.jsx
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "../lib/axios";
@@ -289,7 +290,7 @@ const Post = ({ post, authUser }) => {
   };
 
   return (
-    <div className="card bg-base-200 border border-base-300 shadow-lg p-4 sm:p-6 hover:shadow-xl transition-shadow duration-300">
+    <div className="card bg-base-200 border border-base-300 shadow-lg p-4 hover:shadow-xl transition-shadow duration-300">
       {error && (
         <div className="alert alert-error mb-4 shadow-lg animate-fade-in">
           <span>{error}</span>
@@ -341,14 +342,12 @@ const Post = ({ post, authUser }) => {
       </div>
       {post.content && <p className="mb-3 text-base-content">{post.content}</p>}
       {post.image && (
-        <div className="relative w-full max-h-64 overflow-hidden rounded-lg mb-3">
-          <img
-            src={post.image}
-            alt="Post image"
-            className="w-full h-auto max-h-64 object-contain rounded-lg"
-            onError={e => (e.target.src = "/default-post-image.png")}
-          />
-        </div>
+        <img
+          src={post.image}
+          alt="Post image"
+          className="w-full object-contain rounded-lg mb-3 max-h-96 max-w-full"
+          onError={e => (e.target.src = "/default-post-image.png")}
+        />
       )}
       <div className="flex justify-between items-center mb-3">
         <button
@@ -374,11 +373,11 @@ const Post = ({ post, authUser }) => {
         </button>
       </div>
       {showComments && (
-        <div className="mt-4 space-y-3">
+        <div className="mt-4">
           <div className="form-control mb-4">
             <div className="flex gap-2">
               <textarea
-                className="textarea textarea-bordered w-full focus:ring-2 focus:ring-primary text-sm"
+                className="textarea textarea-bordered w-full focus:ring-2 focus:ring-primary"
                 placeholder="Write a comment..."
                 value={commentContent}
                 onChange={e => setCommentContent(e.target.value)}
@@ -402,7 +401,7 @@ const Post = ({ post, authUser }) => {
               <span className="loading loading-spinner loading-xs text-primary"></span>
             </div>
           ) : comments.length === 0 ? (
-            <p className="text-base-content/70 text-sm">No comments yet.</p>
+            <p className="text-base-content/70">No comments yet.</p>
           ) : (
             <div className="space-y-3">
               {comments.map(comment => (
@@ -423,7 +422,7 @@ const Post = ({ post, authUser }) => {
                     <div className="bg-base-100 p-3 rounded-lg shadow-sm">
                       <Link
                         to={`/profile/${comment.user._id}`}
-                        className="font-semibold hover:underline text-primary text-sm"
+                        className="font-semibold hover:underline text-primary"
                       >
                         {comment.user.fullName}
                       </Link>
