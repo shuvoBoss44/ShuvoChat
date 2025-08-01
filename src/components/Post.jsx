@@ -345,7 +345,7 @@ const Post = ({ post, authUser }) => {
         <img
           src={post.image}
           alt="Post image"
-          className="w-full object-cover rounded-lg mb-3 max-h-100 max-w-full lg:max-h-160"
+          className="w-full object-cover rounded-lg mb-3 max-h-120 max-w-full lg:max-h-180"
           onError={e => (e.target.src = "/default-post-image.png")}
         />
       )}
