@@ -48,27 +48,19 @@ const Profile = () => {
       setError(err.response?.data?.message || "Failed to fetch posts"),
   });
 
-  // ** Simplified Update profile mutation **
-  // Update profile mutation
+  // Use TanStack Query's useMutation for a better experience
   const updateProfileMutation = useMutation({
     mutationFn: async () => {
-      // Create a new FormData object
       const form = new FormData();
-
-      // Append all formData fields to the form
-      // The backend will handle which fields to update
       form.append("fullName", formData.fullName);
       form.append("bio", formData.bio);
       form.append("school", formData.school);
       form.append("college", formData.college);
       form.append("relationshipStatus", formData.relationshipStatus);
-
-      // Conditionally append the image file
       if (imageFile) {
         form.append("profilePicture", imageFile);
       }
-
-      // The backend handles the "no changes" case, so we don't need to check here.
+      console.log(form);
       const response = await axiosInstance.patch("/user/updateProfile", form, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -113,6 +105,7 @@ const Profile = () => {
 
   const handleSubmit = e => {
     e.preventDefault();
+    // This is the correct way to trigger the mutation
     updateProfileMutation.mutate();
   };
 
