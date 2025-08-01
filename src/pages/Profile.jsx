@@ -48,7 +48,7 @@ const Profile = () => {
   const { data: posts = [], isLoading: isLoadingPosts } = useQuery({
     queryKey: ["userPosts", targetUserId],
     queryFn: async () => {
-      const response = await axiosInstance.get(`/posts/user/${targetUserId}`);
+      const response = await axiosInstance.get(`/user/${targetUserId}`);
       return response.data.posts;
     },
     enabled: !!targetUserId,
