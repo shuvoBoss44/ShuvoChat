@@ -8,12 +8,10 @@ import useAuthUser from "../hooks/useAuthUser";
 import ChatLoader from "../components/ChatLoader";
 import toast from "react-hot-toast";
 import { Users, PlusCircle, X } from "lucide-react";
-import useThemeStore from "../stores/useThemeStore"; // Assuming this exists
 
 const Messages = () => {
   const { authUser } = useAuthUser();
   const navigate = useNavigate();
-  const { theme } = useThemeStore(); // Get current theme
   const [chatClient, setChatClient] = useState(null);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [selectedFriends, setSelectedFriends] = useState([]);
@@ -234,7 +232,7 @@ const Messages = () => {
           <h2 className="text-lg sm:text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary mb-4">
             Your Chats
           </h2>
-          <Chat client={chatClient} theme={`messaging ${theme}`}>
+          <Chat client={chatClient} data-theme="dark">
             <ChannelList
               filters={filters}
               sort={sort}
