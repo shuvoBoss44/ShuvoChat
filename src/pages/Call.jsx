@@ -25,7 +25,7 @@ const CallContent = () => {
   useEffect(() => {
     if (callingState === CallingState.LEFT) {
       console.log("Call left, navigating to messages.");
-      navigate("/messages");
+      navigate("/friends");
     }
   }, [callingState, navigate]);
 
@@ -141,7 +141,7 @@ const Call = () => {
             Retry
           </button>
           <button
-            onClick={() => navigate("/messages")}
+            onClick={() => navigate("/friends")}
             className="btn btn-ghost mt-2"
           >
             Go to Messages
