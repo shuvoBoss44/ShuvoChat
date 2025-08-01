@@ -98,8 +98,8 @@ const Profile = () => {
       toast.success("Profile updated successfully on ShuvoMedia");
       queryClient.invalidateQueries({ queryKey: ["authUser"] });
     } catch (err) {
+      console.error("Update profile error:", err.response?.data || err);
       setError(err.response?.data?.message || "Failed to update profile");
-      console.error("Update profile error:", err);
     } finally {
       setIsPending(false);
     }
