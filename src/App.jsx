@@ -14,6 +14,7 @@ import useAuthUser from "./hooks/useAuthUser";
 import OnBoarding from "./pages/OnBoarding";
 import Layout from "./components/Layout";
 import useThemeStore from "./store/useThemeStore";
+import Header from "./pages/Header";
 
 const App = () => {
   const { isLoading, authUser } = useAuthUser();
@@ -25,6 +26,7 @@ const App = () => {
 
   return (
     <div className="h-screen" data-theme={theme}>
+      <Header />
       <Routes>
         <Route
           path="/"
