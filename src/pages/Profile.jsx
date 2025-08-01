@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "../lib/axios";
 import toast from "react-hot-toast";
-import { Image, Save, X, Edit2 } from "lucide-react";
+import { Image, Save, X, Edit2, ArrowLeft } from "lucide-react";
 import PostList from "../components/PostList";
 import useAuthUser from "../hooks/useAuthUser";
+import { Helmet } from "react-helmet-async"; // For dynamic meta tags
 
 const Profile = () => {
   const { authUser, isLoading: isLoadingAuthUser } = useAuthUser();
+  const { userId } = useParams(); // Get userId from URL
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -22,29 +26,50 @@ const Profile = () => {
   const [error, setError] = useState(null);
   const [isPending, setIsPending] = useState(false);
 
-  useEffect(() => {
-    if (authUser) {
-      setFormData({
-        fullName: authUser.fullName || "",
-        bio: authUser.bio || "",
-        school: authUser.school || "",
-        college: authUser.college || "",
-        relationshipStatus: authUser.relationshipStatus || "",
-        profilePicture: authUser.profilePicture || "/default-avatar.png",
-      });
-    }
-  }, [authUser]);
+  // Determine target user ID (/profile uses authUser._id, /profile/:userId uses userId)
+  const targetUserId = userId || authUser?._id;
 
-  const { data: posts = [], isLoading: isLoadingPosts } = useQuery({
-    queryKey: ["userPosts", authUser?._id],
+  // Fetch user data
+  const {
+    data: user,
+    isLoading: isLoadingUser,
+    error: userError,
+  } = useQuery({
+    queryKey: ["user", targetUserId],
     queryFn: async () => {
-      const response = await axiosInstance.get(`/user/posts/${authUser._id}`);
+      const response = await axiosInstance.get(`/users/${targetUserId}`);
+      return response.data.user;
+    },
+    enabled: !!targetUserId,
+    onError: err =>
+      setError(err.response?.data?.message || "Failed to fetch user"),
+  });
+
+  // Fetch user posts
+  const { data: posts = [], isLoading: isLoadingPosts } = useQuery({
+    queryKey: ["userPosts", targetUserId],
+    queryFn: async () => {
+      const response = await axiosInstance.get(`/posts/user/${targetUserId}`);
       return response.data.posts;
     },
-    enabled: !!authUser,
+    enabled: !!targetUserId,
     onError: err =>
       setError(err.response?.data?.message || "Failed to fetch posts"),
   });
+
+  // Initialize form data when user data loads
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        fullName: user.fullName || "",
+        bio: user.bio || "",
+        school: user.school || "",
+        college: user.college || "",
+        relationshipStatus: user.relationshipStatus || "",
+        profilePicture: user.profilePicture || "/default-avatar.png",
+      });
+    }
+  }, [user]);
 
   const handleInputChange = e => {
     const { name, value } = e.target;
@@ -73,6 +98,10 @@ const Profile = () => {
 
   const handleSubmit = async e => {
     e.preventDefault();
+    if (targetUserId !== authUser?._id) {
+      toast.error("You can only edit your own profile");
+      return;
+    }
     setIsPending(true);
     setError(null);
 
@@ -97,6 +126,7 @@ const Profile = () => {
       setImageFile(null);
       toast.success("Profile updated successfully on ShuvoMedia");
       queryClient.invalidateQueries({ queryKey: ["authUser"] });
+      queryClient.invalidateQueries({ queryKey: ["user", targetUserId] });
     } catch (err) {
       console.error("Update profile error:", err.response?.data || err);
       setError(err.response?.data?.message || "Failed to update profile");
@@ -105,7 +135,7 @@ const Profile = () => {
     }
   };
 
-  if (isLoadingAuthUser) {
+  if (isLoadingAuthUser || isLoadingUser) {
     return (
       <div className="flex justify-center items-center h-screen">
         <span className="loading loading-spinner loading-md text-primary"></span>
@@ -113,9 +143,76 @@ const Profile = () => {
     );
   }
 
+  if (userError) {
+    return (
+      <div className="alert alert-error shadow-lg m-4">
+        <span>{userError}</span>
+        <button
+          className="btn btn-ghost btn-sm"
+          onClick={() => setError(null)}
+          aria-label="Dismiss error"
+        >
+          <X className="size-5" />
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-base-100 p-4 sm:p-6 md:p-8">
+      {/* Dynamic meta tags for social sharing */}
+      <Helmet>
+        <title>{user?.fullName || "User"}'s Profile - ShuvoMedia</title>
+        <meta
+          name="description"
+          content={`${
+            user?.fullName || "User"
+          }'s profile on ShuvoMedia. View their posts and connect!`}
+        />
+        <meta
+          property="og:title"
+          content={`${user?.fullName || "User"}'s Profile - ShuvoMedia`}
+        />
+        <meta
+          property="og:description"
+          content={`${
+            user?.fullName || "User"
+          }'s profile on ShuvoMedia. View their posts and connect!`}
+        />
+        <meta
+          property="og:image"
+          content={user?.profilePicture || "/logo.png"}
+        />
+        <meta
+          property="og:url"
+          content={`https://shuvomedia.example.com/profile/${targetUserId}`}
+        />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta
+          name="twitter:title"
+          content={`${user?.fullName || "User"}'s Profile - ShuvoMedia`}
+        />
+        <meta
+          name="twitter:description"
+          content={`${
+            user?.fullName || "User"
+          }'s profile on ShuvoMedia. View their posts and connect!`}
+        />
+        <meta
+          name="twitter:image"
+          content={user?.profilePicture || "/logo.png"}
+        />
+      </Helmet>
+
       <div className="max-w-4xl mx-auto">
+        <button
+          onClick={() => navigate(-1)}
+          className="mb-4 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          aria-label="Go back"
+        >
+          <ArrowLeft className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+        </button>
+
         {error && (
           <div className="alert alert-error mb-6 shadow-lg animate-fade-in">
             <span>{error}</span>
@@ -132,20 +229,24 @@ const Profile = () => {
         <div className="card bg-base-200 border border-base-300 shadow-xl p-6 mb-8 hover:shadow-2xl transition-shadow duration-300">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-              Your ShuvoMedia Profile
+              {user?._id === authUser?._id
+                ? "Your ShuvoMedia Profile"
+                : `${user?.fullName}'s Profile`}
             </h2>
-            <button
-              className="btn btn-ghost btn-sm text-primary hover:bg-primary/10"
-              onClick={() => setIsEditing(!isEditing)}
-              aria-label={isEditing ? "Cancel editing" : "Edit profile"}
-            >
-              {isEditing ? (
-                <X className="w-5 h-5" />
-              ) : (
-                <Edit2 className="w-5 h-5" />
-              )}
-              {isEditing ? "Cancel" : "Edit"}
-            </button>
+            {user?._id === authUser?._id && (
+              <button
+                className="btn btn-ghost btn-sm text-primary hover:bg-primary/10"
+                onClick={() => setIsEditing(!isEditing)}
+                aria-label={isEditing ? "Cancel editing" : "Edit profile"}
+              >
+                {isEditing ? (
+                  <X className="w-5 h-5" />
+                ) : (
+                  <Edit2 className="w-5 h-5" />
+                )}
+                {isEditing ? "Cancel" : "Edit"}
+              </button>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -159,7 +260,7 @@ const Profile = () => {
                     onError={e => (e.target.src = "/default-avatar.png")}
                   />
                 </div>
-                {isEditing && (
+                {isEditing && user?._id === authUser?._id && (
                   <label className="absolute bottom-2 right-2 btn btn-ghost btn-circle btn-sm bg-base-100/80 hover:bg-base-100">
                     <Image className="w-4 h-4 text-primary" />
                     <input
@@ -173,7 +274,7 @@ const Profile = () => {
               </div>
             </div>
             <div className="md:col-span-2">
-              {isEditing ? (
+              {isEditing && user?._id === authUser?._id ? (
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="form-control">
                     <label className="label">
@@ -274,25 +375,25 @@ const Profile = () => {
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-primary">Name:</span>
                     <span className="text-base-content">
-                      {authUser?.fullName || "Not set"}
+                      {user?.fullName || "Not set"}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-primary">Bio:</span>
                     <span className="text-base-content">
-                      {authUser?.bio || "No bio provided"}
+                      {user?.bio || "No bio provided"}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-primary">School:</span>
                     <span className="text-base-content">
-                      {authUser?.school || "Not specified"}
+                      {user?.school || "Not specified"}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-primary">College:</span>
                     <span className="text-base-content">
-                      {authUser?.college || "Not specified"}
+                      {user?.college || "Not specified"}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -300,7 +401,7 @@ const Profile = () => {
                       Relationship Status:
                     </span>
                     <span className="text-base-content">
-                      {authUser?.relationshipStatus || "Not specified"}
+                      {user?.relationshipStatus || "Not specified"}
                     </span>
                   </div>
                 </div>
@@ -311,7 +412,9 @@ const Profile = () => {
 
         <div className="card bg-base-200 border border-base-300 shadow-xl p-6 hover:shadow-2xl transition-shadow duration-300">
           <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary mb-4">
-            Your ShuvoMedia Posts
+            {user?._id === authUser?._id
+              ? "Your ShuvoMedia Posts"
+              : `${user?.fullName}'s Posts`}
           </h2>
           {isLoadingPosts ? (
             <div className="flex justify-center items-center h-64">

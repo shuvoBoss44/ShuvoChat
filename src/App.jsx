@@ -1,5 +1,6 @@
+// src/App.jsx
 import React from "react";
-import { Routes, Route, Navigate } from "react-router";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -62,6 +63,18 @@ const App = () => {
             )
           }
         />
+        <Route
+          path="/profile/:userId"
+          element={
+            authUser ? (
+              <Layout showSidebar={true}>
+                <Profile />
+              </Layout>
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route
@@ -97,7 +110,6 @@ const App = () => {
           element={authUser ? <OnBoarding /> : <Navigate to="/signup" />}
         />
       </Routes>
-
       <Toaster />
     </div>
   );
