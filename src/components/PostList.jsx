@@ -17,7 +17,7 @@ const PostList = ({ posts }) => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {posts.map(post => (
         <Post key={post._id} post={post} authUser={authUser} />
       ))}

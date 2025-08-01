@@ -84,7 +84,7 @@ const ChatPage = () => {
     return <ChatLoader />;
   }
   return (
-    <div className="h-[93vh]">
+    <div className="h-[100vh]">
       <Chat client={chatClient}>
         <Channel channel={channel}>
           <Window>
