@@ -7,7 +7,7 @@ import { Chat, ChannelList } from "stream-chat-react";
 import useAuthUser from "../hooks/useAuthUser";
 import ChatLoader from "../components/ChatLoader";
 import toast from "react-hot-toast";
-import { UsersIcon, PlusCircle, X } from "lucide-react";
+import { UsersIcon, PlusCircle } from "lucide-react";
 
 const Messages = () => {
   const { authUser } = useAuthUser();
@@ -54,12 +54,6 @@ const Messages = () => {
           tokenData
         );
         setChatClient(client);
-        // Debug: Query channels
-        const channels = await client.queryChannels(
-          { members: { $in: [authUser._id] } },
-          { last_message_at: -1 }
-        );
-        console.log("Channels fetched:", channels);
       } catch (error) {
         console.error("Error initializing Stream Chat client:", error);
         toast.error("Failed to initialize chat. Please try again later.");
@@ -80,7 +74,7 @@ const Messages = () => {
         throw new Error("Select at least two friends for a group chat");
       }
       const channelId = `group-${Date.now()}-${authUser._id}`;
-      const members = [authUser._id, ...selectedFriends.map(f => f._id)];
+      const members = [authUser._id, ...selectedFriends];
       const channel = chatClient.channel("messaging", channelId, {
         members,
         name: `${authUser.fullName}'s Group`,
@@ -105,6 +99,12 @@ const Messages = () => {
     );
   };
 
+  const onChannelSelect = channel => {
+    if (channel && channel.id) {
+      navigate(`/chat/${channel.id}`);
+    }
+  };
+
   const filters = { members: { $in: [authUser?._id] } };
   const sort = { last_message_at: -1 };
 
@@ -116,11 +116,9 @@ const Messages = () => {
     <div className="min-h-screen bg-base-100 p-4 sm:p-6 md:p-8">
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-            Messages
-          </h1>
+          <h1 className="text-2xl font-semibold text-primary">Messages</h1>
           <button
-            className="btn btn-primary btn-sm flex items-center gap-2 hover:bg-gradient-to-r hover:from-primary hover:to-secondary"
+            className="btn btn-primary btn-sm flex items-center gap-2"
             onClick={() => setShowCreateGroup(true)}
           >
             <PlusCircle className="w-5 h-5" />
@@ -128,26 +126,17 @@ const Messages = () => {
           </button>
         </div>
 
-        {/* Friends List for Creating Group Chat */}
-        {showCreateGroup && (
-          <div className="card bg-base-200 border border-base-300 shadow-xl p-6 mb-6 hover:shadow-2xl transition-shadow duration-300">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-                Create Group Chat
-              </h2>
-              <button
-                className="btn btn-ghost btn-sm"
-                onClick={() => setShowCreateGroup(false)}
-                aria-label="Close create group"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+        {/* Conditional Rendering of the Group Creation Form */}
+        {showCreateGroup ? (
+          <div className="card bg-base-100 border border-primary/25 shadow-lg p-6 mb-6">
+            <h2 className="text-xl font-semibold text-primary mb-4">
+              Create Group Chat
+            </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
               {friends.map(friend => (
                 <div
                   key={friend._id}
-                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-base-300 transition-colors duration-200"
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-base-200"
                 >
                   <input
                     type="checkbox"
@@ -156,28 +145,22 @@ const Messages = () => {
                     className="checkbox checkbox-primary"
                   />
                   <div className="avatar">
-                    <div className="w-10 rounded-full border border-primary/50">
+                    <div className="w-10 rounded-full">
                       <img
                         src={friend.profilePicture || "/default-avatar.png"}
                         alt={`${friend.fullName}'s avatar`}
-                        onError={e => (e.target.src = "/default-avatar.png")}
                       />
                     </div>
                   </div>
-                  <p className="font-semibold text-sm text-base-content">
-                    {friend.fullName}
-                  </p>
+                  <p className="font-semibold text-sm">{friend.fullName}</p>
                 </div>
               ))}
             </div>
             <div className="flex gap-2">
               <button
-                className="btn btn-primary hover:bg-gradient-to-r hover:from-primary hover:to-secondary"
+                className="btn btn-primary"
                 onClick={() => createGroupChatMutation.mutate()}
-                disabled={
-                  createGroupChatMutation.isPending ||
-                  selectedFriends.length < 2
-                }
+                disabled={createGroupChatMutation.isPending}
               >
                 {createGroupChatMutation.isPending ? (
                   <span className="loading loading-spinner loading-xs"></span>
@@ -193,64 +176,17 @@ const Messages = () => {
               </button>
             </div>
           </div>
-        )}
-
-        {/* Channel List */}
-        <div className="card bg-base-200 border border-base-300 shadow-xl p-6 hover:shadow-2xl transition-shadow duration-300">
-          <h2 className="text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary mb-4">
-            Your Chats
-          </h2>
-          <Chat client={chatClient} theme="messaging light">
+        ) : (
+          /* Channel List */
+          <Chat client={chatClient}>
             <ChannelList
               filters={filters}
               sort={sort}
               showChannelSearch
-              onChannelSelect={channel => {
-                console.log("Channel selected:", channel.id);
-                navigate(`/chat/${channel.id}`);
-              }}
-              Preview={props => (
-                <div
-                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-base-300 cursor-pointer transition-colors duration-200"
-                  onClick={() => {
-                    console.log("Channel clicked:", props.channel.id);
-                    navigate(`/chat/${props.channel.id}`);
-                  }}
-                >
-                  <div className="avatar">
-                    <div className="w-12 rounded-full border border-primary/50">
-                      <img
-                        src={
-                          props.channel.data.image ||
-                          props.channel.data.members?.find(
-                            m => m.user_id !== authUser._id
-                          )?.user?.image ||
-                          "/default-avatar.png"
-                        }
-                        alt="Channel avatar"
-                        onError={e => (e.target.src = "/default-avatar.png")}
-                      />
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-base-content">
-                      {props.channel.data.name || "Chat"}
-                    </p>
-                    <p className="text-sm text-base-content/70 truncate">
-                      {props.channel.state.messages.slice(-1)[0]?.text ||
-                        "No messages yet"}
-                    </p>
-                  </div>
-                  {props.channel.state.unreadCount > 0 && (
-                    <span className="badge badge-primary">
-                      {props.channel.state.unreadCount}
-                    </span>
-                  )}
-                </div>
-              )}
+              onChannelSelect={onChannelSelect}
             />
           </Chat>
-        </div>
+        )}
       </div>
     </div>
   );
