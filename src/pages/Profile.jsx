@@ -67,9 +67,7 @@ const Profile = () => {
       }
 
       // Send the FormData object with the correct content type header
-      const response = await axiosInstance.patch("/user/updateProfile", form, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const response = await axiosInstance.patch("/user/updateProfile", form);
       return response.data;
     },
     onSuccess: () => {
