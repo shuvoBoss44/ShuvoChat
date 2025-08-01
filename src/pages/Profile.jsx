@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "../lib/axios";
 import toast from "react-hot-toast";
 import { Image, Save, X, Edit2 } from "lucide-react";
 import PostList from "../components/PostList";
 import useAuthUser from "../hooks/useAuthUser";
-import { useQuery } from "@tanstack/react-query";
 
 const Profile = () => {
   const { authUser, isLoading: isLoadingAuthUser } = useAuthUser();
@@ -21,6 +20,7 @@ const Profile = () => {
   });
   const [imageFile, setImageFile] = useState(null);
   const [error, setError] = useState(null);
+  const [isPending, setIsPending] = useState(false); // New state for loading
 
   // Initialize formData with authUser data
   useEffect(() => {
@@ -36,7 +36,7 @@ const Profile = () => {
     }
   }, [authUser]);
 
-  // Fetch posts
+  // Fetch posts (this still uses React Query and is fine to keep)
   const { data: posts = [], isLoading: isLoadingPosts } = useQuery({
     queryKey: ["userPosts", authUser?._id],
     queryFn: async () => {
@@ -46,40 +46,6 @@ const Profile = () => {
     enabled: !!authUser,
     onError: err =>
       setError(err.response?.data?.message || "Failed to fetch posts"),
-  });
-
-  // Use TanStack Query's useMutation for a better experience
-  const updateProfileMutation = useMutation({
-    mutationFn: async () => {
-      // Create a new FormData object
-      const form = new FormData();
-
-      // Append all form data fields to the form object
-      form.append("fullName", formData.fullName);
-      form.append("bio", formData.bio);
-      form.append("school", formData.school);
-      form.append("college", formData.college);
-      form.append("relationshipStatus", formData.relationshipStatus);
-
-      // Append the image file only if one has been selected
-      if (imageFile) {
-        form.append("profilePicture", imageFile);
-      }
-
-      // Send the FormData object with the correct content type header
-      const response = await axiosInstance.patch("/user/updateProfile", form);
-      return response.data;
-    },
-    onSuccess: () => {
-      setIsEditing(false);
-      setImageFile(null);
-      toast.success("Profile updated successfully on ShuvoMedia");
-      queryClient.invalidateQueries({ queryKey: ["authUser"] });
-    },
-    onError: err => {
-      setError(err.message || "Failed to update profile");
-      console.error("Update profile error:", err);
-    },
   });
 
   const handleInputChange = e => {
@@ -107,10 +73,48 @@ const Profile = () => {
     }
   };
 
-  const handleSubmit = e => {
+  const handleSubmit = async e => {
     e.preventDefault();
-    // This is the correct way to trigger the mutation
-    updateProfileMutation.mutate();
+    setIsPending(true);
+    setError(null);
+
+    try {
+      const form = new FormData();
+
+      // Append all form data fields to the form object
+      form.append("fullName", formData.fullName);
+      form.append("bio", formData.bio);
+      form.append("school", formData.school);
+      form.append("college", formData.college);
+      form.append("relationshipStatus", formData.relationshipStatus);
+
+      // Append the image file only if one has been selected
+      if (imageFile) {
+        form.append("profilePicture", imageFile);
+      }
+
+      // Send the FormData object with the correct content type header
+      const response = await axiosInstance.patch("/user/updateProfile", form, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      if (response.status !== 200) {
+        throw new Error("Failed to update profile");
+      }
+
+      // On success, reset states and show a toast
+      setIsEditing(false);
+      setImageFile(null);
+      toast.success("Profile updated successfully on ShuvoMedia");
+
+      // Invalidate authUser query to refetch the latest data
+      queryClient.invalidateQueries({ queryKey: ["authUser"] });
+    } catch (err) {
+      setError(err.message || "Failed to update profile");
+      console.error("Update profile error:", err);
+    } finally {
+      setIsPending(false);
+    }
   };
 
   if (isLoadingAuthUser) {
@@ -266,9 +270,9 @@ const Profile = () => {
                   <button
                     type="submit"
                     className="btn btn-primary mt-4 hover:bg-gradient-to-r hover:from-primary hover:to-secondary"
-                    disabled={updateProfileMutation.isPending}
+                    disabled={isPending} // Use the new isPending state
                   >
-                    {updateProfileMutation.isPending ? (
+                    {isPending ? (
                       <span className="loading loading-spinner loading-xs"></span>
                     ) : (
                       <>
