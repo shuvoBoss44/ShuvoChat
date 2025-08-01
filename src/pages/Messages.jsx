@@ -262,7 +262,7 @@ const Messages = () => {
                     <div className="w-12 rounded-full border border-primary/50">
                       <img
                         src={
-                          props.channel.data.image ||
+                          props.channel.data.created_by.image ||
                           props.channel.data.members?.find(
                             m => m.user_id !== authUser._id
                           )?.user?.image ||
@@ -277,7 +277,7 @@ const Messages = () => {
                     <div className="flex items-center justify-between">
                       <p className="font-semibold text-base-content truncate">
                         {console.log(props.channel.data)}
-                        {props.channel.data.name || "Chat"}
+                        {props.channel.data.created_by.name || "Chat"}
                       </p>
                       {props.channel.state.unreadCount > 0 && (
                         <span className="badge badge-primary badge-sm">
