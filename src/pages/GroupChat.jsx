@@ -15,6 +15,7 @@ import {
 import { StreamChat } from "stream-chat";
 import toast from "react-hot-toast";
 import CustomChannelHeader from "../components/CustomChannelHeader";
+import "stream-chat-react/dist/css/v2/index.css";
 
 const GroupChat = () => {
   const { id: groupId } = useParams();
@@ -36,6 +37,7 @@ const GroupChat = () => {
   useEffect(() => {
     const initGroupChat = async () => {
       if (!authUser || !tokenData) return;
+
       try {
         const client = StreamChat.getInstance(STREAM_API_KEY);
         await client.connectUser(
@@ -49,7 +51,6 @@ const GroupChat = () => {
 
         const currChannel = client.channel("messaging", groupId);
         await currChannel.watch();
-
         setChannel(currChannel);
         setChatClient(client);
       } catch (error) {
@@ -87,18 +88,21 @@ const GroupChat = () => {
   }
 
   return (
-    <div className="h-[100vh]">
-      <Chat client={chatClient}>
+    <div className="h-screen w-full flex flex-col bg-base-100 overflow-hidden">
+      <Chat client={chatClient} theme="messaging light">
         <Channel channel={channel}>
           <Window>
             <CustomChannelHeader
               handleVideoCall={handleVideoCall}
               isGroupChat={true}
             />
-            <MessageList />
-            <MessageInput focus={true} />
+            <MessageList className="!h-[calc(100vh-128px)] sm:!h-[calc(100vh-112px)] overflow-y-auto" />
+            <MessageInput
+              focus={true}
+              className="sticky bottom-0 bg-base-100 px-2 py-1 sm:p-2 w-full"
+            />
           </Window>
-          <Thread />
+          <Thread className="max-h-[40vh] sm:max-h-[60vh] overflow-y-auto" />
         </Channel>
       </Chat>
     </div>
