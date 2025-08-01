@@ -8,16 +8,16 @@ const CustomChannelHeader = ({ handleVideoCall }) => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex items-center justify-between px-4 py-2 shadow-md bg-white dark:bg-gray-900">
-      <div className="flex items-center gap-2">
+    <div className="flex items-center justify-between px-4 py-2 shadow-md bg-white dark:bg-gray-900 w-full">
+      <div className="flex items-center gap-3">
         <button
-          onClick={() => navigate(-1)}
-          className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
-          aria-label="Go back"
+          onClick={() => navigate("/friends")}
+          className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          aria-label="Go back to messages"
         >
           <ArrowLeft className="w-5 h-5 text-gray-700 dark:text-gray-300" />
         </button>
-        <ChannelHeader />
+        <ChannelHeader className="text-lg font-semibold text-gray-900 dark:text-gray-100" />
       </div>
       <div className="flex items-center">
         <CallButton handleVideoCall={handleVideoCall} />
