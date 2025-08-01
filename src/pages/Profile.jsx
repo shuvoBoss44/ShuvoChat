@@ -20,9 +20,8 @@ const Profile = () => {
   });
   const [imageFile, setImageFile] = useState(null);
   const [error, setError] = useState(null);
-  const [isPending, setIsPending] = useState(false); // New state for loading
+  const [isPending, setIsPending] = useState(false);
 
-  // Initialize formData with authUser data
   useEffect(() => {
     if (authUser) {
       setFormData({
@@ -36,7 +35,6 @@ const Profile = () => {
     }
   }, [authUser]);
 
-  // Fetch posts (this still uses React Query and is fine to keep)
   const { data: posts = [], isLoading: isLoadingPosts } = useQuery({
     queryKey: ["userPosts", authUser?._id],
     queryFn: async () => {
@@ -80,35 +78,27 @@ const Profile = () => {
 
     try {
       const form = new FormData();
-
-      // Append all form data fields to the form object
       form.append("fullName", formData.fullName);
       form.append("bio", formData.bio);
       form.append("school", formData.school);
       form.append("college", formData.college);
       form.append("relationshipStatus", formData.relationshipStatus);
-
-      // Append the image file only if one has been selected
       if (imageFile) {
         form.append("profilePicture", imageFile);
       }
 
-      // Send the FormData object with the correct content type header
-      const response = await axiosInstance.patch("/user/updateProfile", form);
+      const response = await axiosInstance.patch("/user/updateProfile", form, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
-      if (response.status !== 200) {
-        throw new Error("Failed to update profile");
-      }
-
-      // On success, reset states and show a toast
       setIsEditing(false);
       setImageFile(null);
       toast.success("Profile updated successfully on ShuvoMedia");
-
-      // Invalidate authUser query to refetch the latest data
       queryClient.invalidateQueries({ queryKey: ["authUser"] });
     } catch (err) {
-      setError(err.message || "Failed to update profile");
+      setError(err.response?.data?.message || "Failed to update profile");
       console.error("Update profile error:", err);
     } finally {
       setIsPending(false);
@@ -268,7 +258,7 @@ const Profile = () => {
                   <button
                     type="submit"
                     className="btn btn-primary mt-4 hover:bg-gradient-to-r hover:from-primary hover:to-secondary"
-                    disabled={isPending} // Use the new isPending state
+                    disabled={isPending}
                   >
                     {isPending ? (
                       <span className="loading loading-spinner loading-xs"></span>

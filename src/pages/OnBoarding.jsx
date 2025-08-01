@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import useAuthUser from "../hooks/useAuthUser";
 import axiosInstance from "../lib/axios";
+import useAuthUser from "../hooks/useAuthUser";
 import useThemeStore from "../store/useThemeStore";
+import toast from "react-hot-toast";
 
 const OnBoarding = () => {
   const { authUser } = useAuthUser();
@@ -17,33 +17,24 @@ const OnBoarding = () => {
   const [error, setError] = useState(null);
   const [isPending, setIsPending] = useState(false);
 
-  // Handle file input change
   const handleFileChange = e => {
     const file = e.target.files[0];
-    if (file) {
-      // Validate file type
-      if (!["image/jpeg", "image/png", "image/gif"].includes(file.type)) {
-        setError("Please upload a JPEG, PNG, or GIF image");
-        return;
-      }
-      // Validate file size (e.g., max 5MB)
+    if (
+      file &&
+      ["image/jpeg", "image/png", "image/gif", "image/jpg"].includes(file.type)
+    ) {
       if (file.size > 10 * 1024 * 1024) {
         setError("Image size must be less than 10MB");
         return;
       }
       setError(null);
       setFormData({ ...formData, profilePicture: file });
-
-      // Generate preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
+      setPreview(URL.createObjectURL(file));
+    } else {
+      setError("Please upload a JPEG, PNG, or GIF image");
     }
   };
 
-  // Handle bio input change
   const handleBioChange = e => {
     const bio = e.target.value;
     if (bio.length <= 160) {
@@ -54,7 +45,6 @@ const OnBoarding = () => {
     }
   };
 
-  // Handle form submission
   const handleSubmit = async e => {
     e.preventDefault();
     if (!formData.bio && !formData.profilePicture) {
@@ -70,25 +60,25 @@ const OnBoarding = () => {
     setError(null);
 
     try {
-      // Prepare form data for upload
       const data = new FormData();
       if (formData.bio) data.append("bio", formData.bio);
       if (formData.profilePicture)
         data.append("profilePicture", formData.profilePicture);
 
       const response = await axiosInstance.patch("/user/updateProfile", data, {
-        withCredentials: true,
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
+
       if (response.status !== 200) {
         throw new Error("Failed to update profile");
       }
-      // Redirect to home on success
+      toast.success("Profile updated successfully");
       navigate("/");
     } catch (err) {
       setError(err.response?.data?.message || "Failed to update profile");
+      console.error("Update profile error:", err);
     } finally {
       setIsPending(false);
     }
@@ -100,7 +90,6 @@ const OnBoarding = () => {
       data-theme={theme}
     >
       <div className="border border-primary/25 w-full max-w-md mx-auto bg-base-100 rounded-xl shadow-lg p-6 sm:p-8">
-        {/* Header */}
         <div className="mb-6 text-center">
           <h2 className="text-2xl font-semibold text-primary">
             Complete Your Profile
@@ -114,16 +103,13 @@ const OnBoarding = () => {
           </h2>
         </div>
 
-        {/* Error Message */}
         {error && (
           <div className="alert alert-error mb-4">
             <span>{error}</span>
           </div>
         )}
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Profile Picture Upload */}
           <div className="form-control">
             <label className="label">
               <span className="label-text font-medium">Profile Picture</span>
@@ -137,21 +123,20 @@ const OnBoarding = () => {
                 />
               ) : (
                 <img
-                  src={authUser?.profilePicture}
+                  src={authUser?.profilePicture || "/default-avatar.png"}
                   alt="Profile picture preview"
                   className="w-24 h-24 rounded-full object-cover border border-primary/50"
                 />
               )}
               <input
                 type="file"
-                accept="image/jpeg,image/png,image/gif"
+                accept="image/jpeg,image/png,image/gif,image/jpg"
                 className="file-input file-input-bordered w-full max-w-xs"
                 onChange={handleFileChange}
               />
             </div>
           </div>
 
-          {/* Bio Input */}
           <div className="form-control">
             <label className="label">
               <span className="label-text font-medium">Bio</span>
@@ -168,7 +153,6 @@ const OnBoarding = () => {
             </p>
           </div>
 
-          {/* Submit Button */}
           <button
             className="btn btn-primary w-full"
             type="submit"
@@ -185,7 +169,6 @@ const OnBoarding = () => {
           </button>
         </form>
 
-        {/* Skip Option */}
         <div className="text-center mt-4">
           <button
             className="text-sm text-primary hover:underline"

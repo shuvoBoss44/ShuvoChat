@@ -8,14 +8,16 @@ import useAuthUser from "../hooks/useAuthUser";
 import ChatLoader from "../components/ChatLoader";
 import toast from "react-hot-toast";
 import { Users, PlusCircle, X } from "lucide-react";
+import useThemeStore from "../stores/useThemeStore";
 
 const Messages = () => {
   const { authUser } = useAuthUser();
   const navigate = useNavigate();
+  const { theme } = useThemeStore();
   const [chatClient, setChatClient] = useState(null);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [selectedFriends, setSelectedFriends] = useState([]);
-  const [groupName, setGroupName] = useState(""); // New state for group name
+  const [groupName, setGroupName] = useState("");
   const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY;
 
   // Fetch Stream token
@@ -55,7 +57,6 @@ const Messages = () => {
           tokenData
         );
         setChatClient(client);
-        // Debug: Fetch and log channels
         const channels = await client.queryChannels(
           { members: { $in: [authUser._id] } },
           { last_message_at: -1 }
@@ -232,7 +233,7 @@ const Messages = () => {
           <h2 className="text-lg sm:text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary mb-4">
             Your Chats
           </h2>
-          <Chat client={chatClient} data-theme="dark">
+          <Chat client={chatClient} theme={`messaging ${theme}`}>
             <ChannelList
               filters={filters}
               sort={sort}
