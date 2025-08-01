@@ -1,17 +1,39 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import useAuthUser from "../hooks/useAuthUser";
-import { HomeIcon, ShipWheelIcon, Users, User, Menu, X } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import axiosInstance from "../lib/axios";
+import toast from "react-hot-toast";
+import {
+  HomeIcon,
+  ShipWheelIcon,
+  Users,
+  User,
+  Menu,
+  X,
+  LogOut,
+} from "lucide-react";
 import { useState } from "react";
-import ThemeSelector from "../components/ThemeSelector";
 
 const Sidebar = () => {
   const { authUser } = useAuthUser();
   const location = useLocation();
   const currentPath = location.pathname;
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleSidebar = () => setIsOpen(!isOpen);
+
+  const handleLogout = async () => {
+    try {
+      await axiosInstance.post("/user/logout");
+      queryClient.invalidateQueries({ queryKey: ["authUser"] });
+      toast.success("Logged out successfully");
+      navigate("/login");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to log out");
+    }
+  };
 
   return (
     <>
@@ -80,18 +102,14 @@ const Sidebar = () => {
           </Link>
         </nav>
 
-        <div className="p-4 border-t border-base-300">
-          <ThemeSelector />
-        </div>
-
         <div
-          className="p-4 border-t border-base-300 cursor-pointer hover:bg-base-300 transition-colors duration-200"
+          className="p-4 border-t border-base-300"
           onClick={() => {
             navigate(`/profile`);
             setIsOpen(false);
           }}
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 cursor-pointer hover:bg-base-300 transition-colors duration-200">
             <div className="avatar">
               <div className="w-10 rounded-full border border-primary/50">
                 <img
@@ -111,6 +129,17 @@ const Sidebar = () => {
               </p>
             </div>
           </div>
+        </div>
+
+        <div className="p-4 border-t border-base-300">
+          <button
+            className="btn btn-ghost btn-sm w-full flex items-center gap-2 text-base-content hover:bg-error/10"
+            onClick={handleLogout}
+            aria-label="Log out"
+          >
+            <LogOut className="w-5 h-5 text-error" />
+            Log Out
+          </button>
         </div>
       </aside>
 
