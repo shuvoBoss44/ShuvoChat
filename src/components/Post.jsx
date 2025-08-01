@@ -1,3 +1,4 @@
+// Post.jsx
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosInstance from "../lib/axios";
@@ -20,29 +21,144 @@ const timeSince = date => {
   return `${Math.floor(seconds)} seconds ago`;
 };
 
-const Post = ({ post, authUser, likePostMutation, unlikePostMutation }) => {
+const Post = ({ post, authUser }) => {
   const queryClient = useQueryClient();
   const [commentContent, setCommentContent] = useState("");
   const [showComments, setShowComments] = useState(false);
   const [error, setError] = useState(null);
-  const [likesCount, setLikesCount] = useState((post.likes || []).length);
-  const [isLiked, setIsLiked] = useState(
-    post.likes?.some(like => like.user._id === authUser._id) || false
-  );
-  const [commentsCount, setCommentsCount] = useState(0);
+
+  const isLiked =
+    post.likes?.some(like => like.user._id === authUser._id) || false;
 
   const { data: comments = [], isLoading: isLoadingComments } = useQuery({
     queryKey: ["comments", post._id],
     queryFn: async () => {
       const response = await axiosInstance.get(`/posts/comments/${post._id}`);
-      const fetchedComments = response.data.comments || [];
-      setCommentsCount(fetchedComments.length);
-      return fetchedComments;
+      return response.data.comments || [];
     },
     enabled: showComments,
     onError: err => {
       console.error("Comments fetch error:", err);
       setError(err.response?.data?.message || "Failed to fetch comments");
+    },
+  });
+
+  const likePostMutation = useMutation({
+    mutationFn: async () => {
+      const response = await axiosInstance.post(
+        `/posts/like/${post._id}`,
+        {},
+        { withCredentials: true }
+      );
+      return response.data;
+    },
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ["friendsPosts"] });
+      await queryClient.cancelQueries({
+        queryKey: ["userPosts", authUser._id],
+      });
+
+      const previousFriendsPosts = queryClient.getQueryData(["friendsPosts"]);
+      const previousUserPosts = queryClient.getQueryData([
+        "userPosts",
+        authUser._id,
+      ]);
+
+      const updatePosts = old =>
+        old?.map(p =>
+          p._id === post._id
+            ? {
+                ...p,
+                likes: [
+                  ...(p.likes || []),
+                  { user: { _id: authUser._id, fullName: authUser.fullName } },
+                ],
+              }
+            : p
+        ) || [];
+
+      queryClient.setQueryData(["friendsPosts"], updatePosts);
+      queryClient.setQueryData(["userPosts", authUser._id], updatePosts);
+
+      return { previousFriendsPosts, previousUserPosts };
+    },
+    onSuccess: data => {
+      queryClient.setQueryData(
+        ["friendsPosts"],
+        old => old?.map(p => (p._id === post._id ? data.post : p)) || []
+      );
+      queryClient.setQueryData(
+        ["userPosts", authUser._id],
+        old => old?.map(p => (p._id === post._id ? data.post : p)) || []
+      );
+      toast.success("Post liked");
+    },
+    onError: (err, _, context) => {
+      console.error("Like post error:", err);
+      queryClient.setQueryData(["friendsPosts"], context.previousFriendsPosts);
+      queryClient.setQueryData(
+        ["userPosts", authUser._id],
+        context.previousUserPosts
+      );
+      toast.error(err.response?.data?.message || "Failed to like post");
+    },
+  });
+
+  const unlikePostMutation = useMutation({
+    mutationFn: async () => {
+      const response = await axiosInstance.delete(`/posts/unlike/${post._id}`, {
+        withCredentials: true,
+      });
+      return response.data;
+    },
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ["friendsPosts"] });
+      await queryClient.cancelQueries({
+        queryKey: ["userPosts", authUser._id],
+      });
+
+      const previousFriendsPosts = queryClient.getQueryData(["friendsPosts"]);
+      const previousUserPosts = queryClient.getQueryData([
+        "userPosts",
+        authUser._id,
+      ]);
+
+      const updatePosts = old =>
+        old?.map(p =>
+          p._id === post._id
+            ? {
+                ...p,
+                likes: (p.likes || []).filter(
+                  like => like.user._id !== authUser._id
+                ),
+              }
+            : p
+        ) || [];
+
+      queryClient.setQueryData(["friendsPosts"], updatePosts);
+      queryClient.setQueryData(["userPosts", authUser._id], updatePosts);
+
+      return { previousFriendsPosts, previousUserPosts };
+    },
+    onSuccess: data => {
+      queryClient.setQueryData(
+        ["friendsPosts"],
+        old => old?.map(p => (p._id === post._id ? data.post : p)) || []
+      );
+      queryClient.setQueryData(
+        ["userPosts", authUser._id],
+        old => old?.map(p => (p._id === post._id ? data.post : p)) || []
+      );
+      toast.success("Post unliked");
+    },
+    onError: (err, _, context) => {
+      console.error("Unlike post error:", err);
+      queryClient.setQueryData(["friendsPosts"], context.previousFriendsPosts);
+      queryClient.setQueryData(
+        ["userPosts", authUser._id],
+        context.previousUserPosts
+      );
+      toast.error(err.response?.data?.message || "Failed to unlike post");
     },
   });
 
@@ -55,7 +171,18 @@ const Post = ({ post, authUser, likePostMutation, unlikePostMutation }) => {
     },
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: ["comments", post._id] });
+      await queryClient.cancelQueries({ queryKey: ["friendsPosts"] });
+      await queryClient.cancelQueries({
+        queryKey: ["userPosts", authUser._id],
+      });
+
       const previousComments = queryClient.getQueryData(["comments", post._id]);
+      const previousFriendsPosts = queryClient.getQueryData(["friendsPosts"]);
+      const previousUserPosts = queryClient.getQueryData([
+        "userPosts",
+        authUser._id,
+      ]);
+
       const newComment = {
         _id: `temp-${Date.now()}`,
         user: {
@@ -66,26 +193,52 @@ const Post = ({ post, authUser, likePostMutation, unlikePostMutation }) => {
         content: commentContent,
         createdAt: new Date(),
       };
+
       queryClient.setQueryData(["comments", post._id], old => [
         ...(old || []),
         newComment,
       ]);
-      setCommentsCount(prev => prev + 1);
-      return { previousComments };
+
+      const updatePosts = old =>
+        old?.map(p =>
+          p._id === post._id
+            ? { ...p, comments: [...(p.comments || []), newComment._id] }
+            : p
+        ) || [];
+
+      queryClient.setQueryData(["friendsPosts"], updatePosts);
+      queryClient.setQueryData(["userPosts", authUser._id], updatePosts);
+
+      return { previousComments, previousFriendsPosts, previousUserPosts };
     },
-    onSuccess: () => {
+    onSuccess: data => {
+      queryClient.setQueryData(["comments", post._id], old => [
+        ...(old?.filter(c => !c._id.startsWith("temp")) || []),
+        data.comment,
+      ]);
+      queryClient.setQueryData(
+        ["friendsPosts"],
+        old => old?.map(p => (p._id === post._id ? data.post : p)) || []
+      );
+      queryClient.setQueryData(
+        ["userPosts", authUser._id],
+        old => old?.map(p => (p._id === post._id ? data.post : p)) || []
+      );
       setCommentContent("");
       toast.success("Comment added");
-      queryClient.invalidateQueries({ queryKey: ["comments", post._id] });
     },
     onError: (err, _, context) => {
       console.error("Comment error:", err);
-      setError(err.response?.data?.message || "Failed to add comment");
       queryClient.setQueryData(
         ["comments", post._id],
         context.previousComments
       );
-      setCommentsCount(prev => prev - 1);
+      queryClient.setQueryData(["friendsPosts"], context.previousFriendsPosts);
+      queryClient.setQueryData(
+        ["userPosts", authUser._id],
+        context.previousUserPosts
+      );
+      setError(err.response?.data?.message || "Failed to add comment");
     },
   });
 
@@ -99,11 +252,13 @@ const Post = ({ post, authUser, likePostMutation, unlikePostMutation }) => {
       await queryClient.cancelQueries({
         queryKey: ["userPosts", authUser._id],
       });
+
       const previousFriendsPosts = queryClient.getQueryData(["friendsPosts"]);
       const previousUserPosts = queryClient.getQueryData([
         "userPosts",
         authUser._id,
       ]);
+
       queryClient.setQueryData(
         ["friendsPosts"],
         old => old?.filter(p => p._id !== post._id) || []
@@ -112,6 +267,7 @@ const Post = ({ post, authUser, likePostMutation, unlikePostMutation }) => {
         ["userPosts", authUser._id],
         old => old?.filter(p => p._id !== post._id) || []
       );
+
       return { previousFriendsPosts, previousUserPosts };
     },
     onSuccess: () => {
@@ -119,93 +275,18 @@ const Post = ({ post, authUser, likePostMutation, unlikePostMutation }) => {
     },
     onError: (err, _, context) => {
       console.error("Delete post error:", err);
-      toast.error(err.response?.data?.message || "Failed to delete post");
       queryClient.setQueryData(["friendsPosts"], context.previousFriendsPosts);
       queryClient.setQueryData(
         ["userPosts", authUser._id],
         context.previousUserPosts
       );
+      toast.error(err.response?.data?.message || "Failed to delete post");
     },
   });
 
   const handleLikeToggle = () => {
     const mutation = isLiked ? unlikePostMutation : likePostMutation;
-
-    mutation.mutate(post._id, {
-      onMutate: async () => {
-        await queryClient.cancelQueries({ queryKey: ["friendsPosts"] });
-        await queryClient.cancelQueries({
-          queryKey: ["userPosts", authUser._id],
-        });
-        const previousFriendsPosts = queryClient.getQueryData(["friendsPosts"]);
-        const previousUserPosts = queryClient.getQueryData([
-          "userPosts",
-          authUser._id,
-        ]);
-
-        const updatePosts = (old, postId, addLike) => {
-          return (
-            old?.map(p =>
-              p._id === postId
-                ? {
-                    ...p,
-                    likes: addLike
-                      ? [
-                          ...(p.likes || []),
-                          {
-                            user: {
-                              _id: authUser._id,
-                              fullName: authUser.fullName,
-                            },
-                          },
-                        ]
-                      : (p.likes || []).filter(
-                          like => like.user._id !== authUser._id
-                        ),
-                  }
-                : p
-            ) || []
-          );
-        };
-
-        queryClient.setQueryData(["friendsPosts"], old =>
-          updatePosts(old, post._id, !isLiked)
-        );
-        queryClient.setQueryData(["userPosts", authUser._id], old =>
-          updatePosts(old, post._id, !isLiked)
-        );
-
-        setLikesCount(prev => (isLiked ? prev - 1 : prev + 1));
-        setIsLiked(!isLiked);
-
-        return { previousFriendsPosts, previousUserPosts };
-      },
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["friendsPosts"] });
-        queryClient.invalidateQueries({
-          queryKey: ["userPosts", authUser._id],
-        });
-      },
-      onError: (err, _, context) => {
-        console.error(`${isLiked ? "Unlike" : "Like"} error:`, err);
-        queryClient.setQueryData(
-          ["friendsPosts"],
-          context.previousFriendsPosts
-        );
-        queryClient.setQueryData(
-          ["userPosts", authUser._id],
-          context.previousUserPosts
-        );
-        setLikesCount((post.likes || []).length);
-        setIsLiked(
-          post.likes?.some(like => like.user._id === authUser._id) || false
-        );
-        toast.error(
-          err.response?.data?.message ||
-            `Failed to ${isLiked ? "unlike" : "like"} post`
-        );
-      },
-    });
+    mutation.mutate();
   };
 
   return (
@@ -280,7 +361,7 @@ const Post = ({ post, authUser, likePostMutation, unlikePostMutation }) => {
               isLiked ? "fill-current text-red-500" : "text-base-content"
             }`}
           />
-          <span>{likesCount} Likes</span>
+          <span>{post.likes?.length || 0} Likes</span>
         </button>
         <button
           className="btn btn-ghost btn-sm flex items-center gap-2"
@@ -288,7 +369,7 @@ const Post = ({ post, authUser, likePostMutation, unlikePostMutation }) => {
           aria-label={showComments ? "Hide comments" : "Show comments"}
         >
           <MessageCircle className="w-5 h-5 text-base-content" />
-          <span>{commentsCount} Comments</span>
+          <span>{post.comments?.length || 0} Comments</span>
         </button>
       </div>
       {showComments && (
