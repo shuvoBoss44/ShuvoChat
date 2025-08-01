@@ -63,10 +63,7 @@ const Profile = () => {
       console.log(formData);
       const response = await axiosInstance.patch(
         "/user/updateProfile",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
+        formData
       );
       return response.data;
     },
