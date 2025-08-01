@@ -9,7 +9,6 @@ import ChatLoader from "../components/ChatLoader";
 import toast from "react-hot-toast";
 import { Users, PlusCircle, X, Search } from "lucide-react";
 import useThemeStore from "../store/useThemeStore";
-import ThemeSelector from "../components/ThemeSelector";
 
 const Messages = () => {
   const { authUser } = useAuthUser();
@@ -126,12 +125,9 @@ const Messages = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-              Messages
-            </h1>
-            <ThemeSelector />
-          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+            Messages
+          </h1>
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <div className="relative flex-1 sm:flex-none">
               <input
@@ -280,6 +276,7 @@ const Messages = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <p className="font-semibold text-base-content truncate">
+                        {console.log(props.channel.data)}
                         {props.channel.data.name || "Chat"}
                       </p>
                       {props.channel.state.unreadCount > 0 && (

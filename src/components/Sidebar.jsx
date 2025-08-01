@@ -11,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { useState } from "react";
+import ThemeSelector from "../components/ThemeSelector";
 
 const Sidebar = () => {
   const { authUser } = useAuthUser();
@@ -25,21 +26,29 @@ const Sidebar = () => {
     <>
       {/* Mobile Toggle Button */}
       <button
-        className="lg:hidden fixed top-4 left-4 z-50 btn btn-ghost btn-circle"
+        className="lg:hidden fixed top-4 left-4 z-50 btn btn-ghost btn-circle bg-base-100/80 hover:bg-base-100"
         onClick={toggleSidebar}
         aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
       >
-        {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        {isOpen ? (
+          <X className="w-6 h-6 text-primary" />
+        ) : (
+          <Menu className="w-6 h-6 text-primary" />
+        )}
       </button>
 
       {/* Sidebar */}
       <aside
-        className={`w-64 bg-base-200 border-r border-base-300 flex flex-col h-screen sticky top-0 transition-transform duration-300 ${
+        className={`w-64 bg-base-200 border-r border-base-300 flex flex-col h-screen fixed lg:sticky top-0 left-0 z-40 transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 z-40 lg:flex`}
+        } lg:translate-x-0`}
       >
         <div className="p-5 border-b border-base-300">
-          <Link to="/" className="flex items-center gap-2.5">
+          <Link
+            to="/"
+            className="flex items-center gap-2.5"
+            onClick={() => setIsOpen(false)}
+          >
             <ShipWheelIcon className="size-9 text-primary" />
             <span className="text-3xl font-bold font-mono bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary tracking-wider">
               ShuvoMedia
@@ -47,51 +56,55 @@ const Sidebar = () => {
           </Link>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 p-4 space-y-2">
           <Link
             to="/"
-            className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case ${
-              currentPath === "/" ? "btn-active" : ""
+            className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case text-base-content hover:bg-primary/10 ${
+              currentPath === "/" ? "btn-active bg-primary/20" : ""
             }`}
             onClick={() => setIsOpen(false)}
           >
-            <HomeIcon className="size-5 text-base-content opacity-70" />
+            <HomeIcon className="size-5 opacity-70" />
             <span>Home</span>
           </Link>
           <Link
             to="/messages"
-            className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case ${
-              currentPath === "/messages" ? "btn-active" : ""
+            className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case text-base-content hover:bg-primary/10 ${
+              currentPath === "/messages" ? "btn-active bg-primary/20" : ""
             }`}
             onClick={() => setIsOpen(false)}
           >
-            <MessageSquare className="size-5 text-base-content opacity-70" />
+            <MessageSquare className="size-5 opacity-70" />
             <span>Messages</span>
           </Link>
           <Link
             to="/friends"
-            className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case ${
-              currentPath === "/friends" ? "btn-active" : ""
+            className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case text-base-content hover:bg-primary/10 ${
+              currentPath === "/friends" ? "btn-active bg-primary/20" : ""
             }`}
             onClick={() => setIsOpen(false)}
           >
-            <Users className="size-5 text-base-content opacity-70" />
+            <Users className="size-5 opacity-70" />
             <span>Friends</span>
           </Link>
           <Link
             to="/profile"
-            className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case ${
-              currentPath === "/profile" ? "btn-active" : ""
+            className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case text-base-content hover:bg-primary/10 ${
+              currentPath === "/profile" ? "btn-active bg-primary/20" : ""
             }`}
             onClick={() => setIsOpen(false)}
           >
-            <User className="size-5 text-base-content opacity-70" />
+            <User className="size-5 opacity-70" />
             <span>Profile</span>
           </Link>
         </nav>
 
+        <div className="p-4 border-t border-base-300">
+          <ThemeSelector />
+        </div>
+
         <div
-          className="p-4 border-t border-base-300 cursor-pointer hover:bg-base-300 transition-colors"
+          className="p-4 border-t border-base-300 cursor-pointer hover:bg-base-300 transition-colors duration-200"
           onClick={() => {
             navigate(`/profile`);
             setIsOpen(false);
@@ -99,15 +112,18 @@ const Sidebar = () => {
         >
           <div className="flex items-center gap-3">
             <div className="avatar">
-              <div className="w-10 rounded-full">
+              <div className="w-10 rounded-full border border-primary/50">
                 <img
                   src={authUser?.profilePicture || "/default-avatar.png"}
                   alt="User Avatar"
+                  onError={e => (e.target.src = "/default-avatar.png")}
                 />
               </div>
             </div>
             <div className="flex-1">
-              <p className="font-semibold text-sm">{authUser?.fullName}</p>
+              <p className="font-semibold text-sm text-base-content">
+                {authUser?.fullName}
+              </p>
               <p className="text-xs text-success flex items-center gap-1">
                 <span className="size-2 rounded-full bg-success inline-block" />
                 Online
@@ -120,7 +136,7 @@ const Sidebar = () => {
       {/* Overlay for mobile */}
       {isOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-30"
+          className="lg:hidden fixed inset-0 bg-black/60 z-30 transition-opacity duration-300"
           onClick={toggleSidebar}
         ></div>
       )}
