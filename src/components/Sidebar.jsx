@@ -26,7 +26,10 @@ const Sidebar = () => {
 
   const handleLogout = async () => {
     try {
-      await axiosInstance.post("/user/logout");
+      const res = await axiosInstance.post("/user/logout");
+      if (res.status !== 200) {
+        throw new Error("Logout failed");
+      }
       queryClient.invalidateQueries({ queryKey: ["authUser"] });
       toast.success("Logged out successfully");
       navigate("/login");
