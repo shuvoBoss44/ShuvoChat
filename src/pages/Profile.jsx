@@ -6,7 +6,6 @@ import toast from "react-hot-toast";
 import { Image, Save, X, Edit2, ArrowLeft } from "lucide-react";
 import PostList from "../components/PostList";
 import useAuthUser from "../hooks/useAuthUser";
-import { Helmet } from "react-helmet-async"; // For dynamic meta tags
 
 const Profile = () => {
   const { authUser, isLoading: isLoadingAuthUser } = useAuthUser();
@@ -160,50 +159,6 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-base-100 p-4 sm:p-6 md:p-8">
-      {/* Dynamic meta tags for social sharing */}
-      <Helmet>
-        <title>{user?.fullName || "User"}'s Profile - ShuvoMedia</title>
-        <meta
-          name="description"
-          content={`${
-            user?.fullName || "User"
-          }'s profile on ShuvoMedia. View their posts and connect!`}
-        />
-        <meta
-          property="og:title"
-          content={`${user?.fullName || "User"}'s Profile - ShuvoMedia`}
-        />
-        <meta
-          property="og:description"
-          content={`${
-            user?.fullName || "User"
-          }'s profile on ShuvoMedia. View their posts and connect!`}
-        />
-        <meta
-          property="og:image"
-          content={user?.profilePicture || "/logo.png"}
-        />
-        <meta
-          property="og:url"
-          content={`https://shuvomedia.example.com/profile/${targetUserId}`}
-        />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta
-          name="twitter:title"
-          content={`${user?.fullName || "User"}'s Profile - ShuvoMedia`}
-        />
-        <meta
-          name="twitter:description"
-          content={`${
-            user?.fullName || "User"
-          }'s profile on ShuvoMedia. View their posts and connect!`}
-        />
-        <meta
-          name="twitter:image"
-          content={user?.profilePicture || "/logo.png"}
-        />
-      </Helmet>
-
       <div className="max-w-4xl mx-auto">
         <button
           onClick={() => navigate(-1)}
