@@ -1,21 +1,18 @@
-import React from "react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 
-const Layout = ({ showSidebar = true, children }) => {
+const Layout = ({ children, showSidebar = false }) => {
   return (
-    <div className="flex min-h-screen bg-base-100">
-      {showSidebar && <Sidebar />}
-      <div
-        className={`flex-1 flex flex-col ${
-          showSidebar ? "lg:ml-64" : ""
-        } transition-all duration-300`}
-      >
-        <Header />
-        <main className="flex-1 p-2 sm:p-4 md:p-6">{children}</main>
+    <div className="min-h-screen">
+      <div className="flex">
+        {showSidebar && <Sidebar />}
+
+        <div className="flex-1 flex flex-col">
+          <Header />
+          <main className="flex-1 overflow-y-auto">{children}</main>
+        </div>
       </div>
     </div>
   );
 };
-
 export default Layout;
