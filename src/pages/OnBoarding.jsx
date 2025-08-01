@@ -95,7 +95,7 @@ const OnBoarding = () => {
             Complete Your Profile
           </h2>
           <p className="text-sm opacity-70 mt-1">
-            Add a bio and profile picture to personalize your ShuvoChat
+            Add a bio and profile picture to personalize your ShuvoMedia
             experience.
           </p>
           <h2 className="text-2xl font-semibold text-primary">

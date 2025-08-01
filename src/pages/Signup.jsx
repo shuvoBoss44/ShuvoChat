@@ -38,7 +38,7 @@ const Signup = () => {
           {/* LOGO */}
           <div className="mb-4 flex items-center justify-start gap-2">
             <span className="text-3xl font-bold font-mono bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary tracking-wider">
-              ShuvoChat
+              ShuvoMedia
             </span>
           </div>
 
@@ -55,7 +55,7 @@ const Signup = () => {
                 <div>
                   <h2 className="text-xl font-semibold">Create an Account</h2>
                   <p className="text-sm opacity-70">
-                    Join ShuvoChat and start your chatting!
+                    Join ShuvoMedia and start your chatting!
                   </p>
                 </div>
 
@@ -189,7 +189,7 @@ const Signup = () => {
                 Connect with your nearest friends
               </h2>
               <p className="opacity-70">
-                Join ShuvoChat to meet new people. ShuvoChat has something for
+                Join ShuvoMedia to meet new people. ShuvoMedia has something for
                 everyone.
               </p>
             </div>

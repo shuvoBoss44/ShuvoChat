@@ -32,7 +32,7 @@ const Login = () => {
           {/* LOGO */}
           <div className="mb-4 flex items-center justify-start gap-2">
             <span className="text-3xl font-bold font-mono bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary tracking-wider">
-              ShuvoChat
+              ShuvoMedia
             </span>
           </div>
 
@@ -49,7 +49,7 @@ const Login = () => {
                 <div>
                   <h2 className="text-xl font-semibold">Sign In</h2>
                   <p className="text-sm opacity-70">
-                    Welcome back to ShuvoChat! Enter your credentials to
+                    Welcome back to ShuvoMedia! Enter your credentials to
                     continue.
                   </p>
                 </div>
@@ -148,8 +148,8 @@ const Login = () => {
                 Connect with your friends
               </h2>
               <p className="opacity-70">
-                Log in to ShuvoChat to chat, share, and stay connected with your
-                community.
+                Log in to ShuvoMedia to chat, share, and stay connected with
+                your community.
               </p>
             </div>
           </div>

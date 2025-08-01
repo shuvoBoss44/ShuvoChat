@@ -30,11 +30,13 @@ const Post = ({ post, authUser, likePostMutation, unlikePostMutation }) => {
     queryKey: ["comments", post._id],
     queryFn: async () => {
       const response = await axiosInstance.get(`/posts/comments/${post._id}`);
-      return response.data.comments;
+      return response.data.comments || [];
     },
     enabled: showComments,
-    onError: err =>
-      setError(err.response?.data?.message || "Failed to fetch comments"),
+    onError: err => {
+      console.error("Comments fetch error:", err);
+      setError(err.response?.data?.message || "Failed to fetch comments");
+    },
   });
 
   const commentMutation = useMutation({
@@ -68,6 +70,7 @@ const Post = ({ post, authUser, likePostMutation, unlikePostMutation }) => {
       queryClient.invalidateQueries({ queryKey: ["comments", post._id] });
     },
     onError: (err, _, context) => {
+      console.error("Comment error:", err);
       setError(err.response?.data?.message || "Failed to add comment");
       queryClient.setQueryData(
         ["comments", post._id],
@@ -105,6 +108,7 @@ const Post = ({ post, authUser, likePostMutation, unlikePostMutation }) => {
       toast.success("Post deleted");
     },
     onError: (err, _, context) => {
+      console.error("Delete post error:", err);
       toast.error(err.response?.data?.message || "Failed to delete post");
       queryClient.setQueryData(["friendsPosts"], context.previousFriendsPosts);
       queryClient.setQueryData(
@@ -115,130 +119,69 @@ const Post = ({ post, authUser, likePostMutation, unlikePostMutation }) => {
   });
 
   const handleLikeToggle = () => {
-    const isLiked = post.likes?.some(like => like.user._id === authUser._id);
-    if (isLiked) {
-      unlikePostMutation.mutate(post._id, {
-        onMutate: async () => {
-          await queryClient.cancelQueries({ queryKey: ["friendsPosts"] });
-          await queryClient.cancelQueries({
-            queryKey: ["userPosts", authUser._id],
-          });
-          const previousFriendsPosts = queryClient.getQueryData([
-            "friendsPosts",
-          ]);
-          const previousUserPosts = queryClient.getQueryData([
-            "userPosts",
-            authUser._id,
-          ]);
-          queryClient.setQueryData(
-            ["friendsPosts"],
-            old =>
-              old?.map(p =>
-                p._id === post._id
-                  ? {
-                      ...p,
-                      likes: p.likes.filter(
-                        like => like.user._id !== authUser._id
-                      ),
-                    }
-                  : p
-              ) || []
-          );
-          queryClient.setQueryData(
-            ["userPosts", authUser._id],
-            old =>
-              old?.map(p =>
-                p._id === post._id
-                  ? {
-                      ...p,
-                      likes: p.likes.filter(
-                        like => like.user._id !== authUser._id
-                      ),
-                    }
-                  : p
-              ) || []
-          );
-          return { previousFriendsPosts, previousUserPosts };
-        },
-        onError: (err, _, context) => {
-          queryClient.setQueryData(
-            ["friendsPosts"],
-            context.previousFriendsPosts
-          );
-          queryClient.setQueryData(
-            ["userPosts", authUser._id],
-            context.previousUserPosts
-          );
-        },
-      });
-    } else {
-      likePostMutation.mutate(post._id, {
-        onMutate: async () => {
-          await queryClient.cancelQueries({ queryKey: ["friendsPosts"] });
-          await queryClient.cancelQueries({
-            queryKey: ["userPosts", authUser._id],
-          });
-          const previousFriendsPosts = queryClient.getQueryData([
-            "friendsPosts",
-          ]);
-          const previousUserPosts = queryClient.getQueryData([
-            "userPosts",
-            authUser._id,
-          ]);
-          queryClient.setQueryData(
-            ["friendsPosts"],
-            old =>
-              old?.map(p =>
-                p._id === post._id
-                  ? {
-                      ...p,
-                      likes: [
-                        ...(p.likes || []),
-                        {
-                          user: {
-                            _id: authUser._id,
-                            fullName: authUser.fullName,
-                          },
+    const isLiked =
+      post.likes?.some(like => like.user._id === authUser._id) || false;
+
+    const updatePosts = (old, postId, addLike) => {
+      return (
+        old?.map(p =>
+          p._id === postId
+            ? {
+                ...p,
+                likes: addLike
+                  ? [
+                      ...(p.likes || []),
+                      {
+                        user: {
+                          _id: authUser._id,
+                          fullName: authUser.fullName,
                         },
-                      ],
-                    }
-                  : p
-              ) || []
-          );
-          queryClient.setQueryData(
-            ["userPosts", authUser._id],
-            old =>
-              old?.map(p =>
-                p._id === post._id
-                  ? {
-                      ...p,
-                      likes: [
-                        ...(p.likes || []),
-                        {
-                          user: {
-                            _id: authUser._id,
-                            fullName: authUser.fullName,
-                          },
-                        },
-                      ],
-                    }
-                  : p
-              ) || []
-          );
-          return { previousFriendsPosts, previousUserPosts };
-        },
-        onError: (err, _, context) => {
-          queryClient.setQueryData(
-            ["friendsPosts"],
-            context.previousFriendsPosts
-          );
-          queryClient.setQueryData(
-            ["userPosts", authUser._id],
-            context.previousUserPosts
-          );
-        },
-      });
-    }
+                      },
+                    ]
+                  : (p.likes || []).filter(
+                      like => like.user._id !== authUser._id
+                    ),
+              }
+            : p
+        ) || []
+      );
+    };
+
+    const mutation = isLiked ? unlikePostMutation : likePostMutation;
+
+    mutation.mutate(post._id, {
+      onMutate: async () => {
+        await queryClient.cancelQueries({ queryKey: ["friendsPosts"] });
+        await queryClient.cancelQueries({
+          queryKey: ["userPosts", authUser._id],
+        });
+        const previousFriendsPosts = queryClient.getQueryData(["friendsPosts"]);
+        const previousUserPosts = queryClient.getQueryData([
+          "userPosts",
+          authUser._id,
+        ]);
+
+        queryClient.setQueryData(["friendsPosts"], old =>
+          updatePosts(old, post._id, !isLiked)
+        );
+        queryClient.setQueryData(["userPosts", authUser._id], old =>
+          updatePosts(old, post._id, !isLiked)
+        );
+
+        return { previousFriendsPosts, previousUserPosts };
+      },
+      onError: (err, _, context) => {
+        console.error(`${isLiked ? "Unlike" : "Like"} error:`, err);
+        queryClient.setQueryData(
+          ["friendsPosts"],
+          context.previousFriendsPosts
+        );
+        queryClient.setQueryData(
+          ["userPosts", authUser._id],
+          context.previousUserPosts
+        );
+      },
+    });
   };
 
   return (
@@ -297,7 +240,7 @@ const Post = ({ post, authUser, likePostMutation, unlikePostMutation }) => {
         <img
           src={post.image}
           alt="Post image"
-          className="w-full max-h-96 object-cover rounded-lg mb-3"
+          className="w-full object-contain rounded-lg mb-3"
           onError={e => (e.target.src = "/default-post-image.png")}
         />
       )}
@@ -316,18 +259,18 @@ const Post = ({ post, authUser, likePostMutation, unlikePostMutation }) => {
             className={`w-5 h-5 ${
               post.likes?.some(like => like.user._id === authUser._id)
                 ? "fill-current text-red-500"
-                : ""
+                : "text-base-content"
             }`}
           />
-          <span>{post.likes?.length || 0} Likes</span>
+          <span>{(post.likes || []).length} Likes</span>
         </button>
         <button
           className="btn btn-ghost btn-sm flex items-center gap-2"
           onClick={() => setShowComments(!showComments)}
           aria-label={showComments ? "Hide comments" : "Show comments"}
         >
-          <MessageCircle className="w-5 h-5" />
-          <span>{comments.length} Comments</span>
+          <MessageCircle className="w-5 h-5 text-base-content" />
+          <span>{comments.length || 0} Comments</span>
         </button>
       </div>
       {showComments && (
