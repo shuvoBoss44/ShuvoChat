@@ -487,7 +487,6 @@ const Friends = () => {
                 </div>
               )}
             </div>
-
             <div className="card bg-base-100 border border-primary/25 shadow-lg p-6 transition-transform hover:scale-[1.01]">
               <h2 className="text-xl font-semibold text-primary mb-4">
                 Your Friends
@@ -501,25 +500,33 @@ const Friends = () => {
                       key={friend._id}
                       className="flex items-center gap-3 p-3 rounded-lg hover:bg-base-200 transition-colors"
                     >
-                      <div className="avatar">
-                        <div className="w-10 rounded-full border border-primary/50 overflow-hidden">
-                          <img
-                            src={friend.profilePicture || "/default-avatar.png"}
-                            alt={`${friend.fullName}'s avatar`}
-                            className="object-fill"
-                          />
+                      <Link
+                        to={`/profile/${friend._id}`}
+                        className="flex items-center gap-3 flex-grow"
+                        aria-label={`View ${friend.fullName}'s profile`}
+                      >
+                        <div className="avatar">
+                          <div className="w-10 rounded-full border border-primary/50 overflow-hidden">
+                            <img
+                              src={
+                                friend.profilePicture || "/default-avatar.png"
+                              }
+                              alt={`${friend.fullName}'s avatar`}
+                              className="object-cover"
+                            />
+                          </div>
                         </div>
-                      </div>
-                      <div>
-                        <div>{friend.fullName}</div>
-                        <Link
-                          to={`/chat/${friend._id}`}
-                          className="btn btn-primary btn-sm mt-3"
-                          aria-label={`Send message to ${friend.fullName}`}
-                        >
-                          Send Message
-                        </Link>
-                      </div>
+                        <div className="font-semibold text-base-content hover:text-primary transition-colors">
+                          {friend.fullName}
+                        </div>
+                      </Link>
+                      <Link
+                        to={`/chat/${friend._id}`}
+                        className="btn btn-primary btn-sm"
+                        aria-label={`Send message to ${friend.fullName}`}
+                      >
+                        Send Message
+                      </Link>
                     </div>
                   ))}
                 </div>
