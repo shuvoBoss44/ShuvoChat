@@ -25,12 +25,19 @@ const Post = ({ post, authUser, likePostMutation, unlikePostMutation }) => {
   const [commentContent, setCommentContent] = useState("");
   const [showComments, setShowComments] = useState(false);
   const [error, setError] = useState(null);
+  const [likesCount, setLikesCount] = useState((post.likes || []).length);
+  const [isLiked, setIsLiked] = useState(
+    post.likes?.some(like => like.user._id === authUser._id) || false
+  );
+  const [commentsCount, setCommentsCount] = useState(0);
 
   const { data: comments = [], isLoading: isLoadingComments } = useQuery({
     queryKey: ["comments", post._id],
     queryFn: async () => {
       const response = await axiosInstance.get(`/posts/comments/${post._id}`);
-      return response.data.comments || [];
+      const fetchedComments = response.data.comments || [];
+      setCommentsCount(fetchedComments.length);
+      return fetchedComments;
     },
     enabled: showComments,
     onError: err => {
@@ -49,19 +56,21 @@ const Post = ({ post, authUser, likePostMutation, unlikePostMutation }) => {
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: ["comments", post._id] });
       const previousComments = queryClient.getQueryData(["comments", post._id]);
+      const newComment = {
+        _id: `temp-${Date.now()}`,
+        user: {
+          _id: authUser._id,
+          fullName: authUser.fullName,
+          profilePicture: authUser.profilePicture,
+        },
+        content: commentContent,
+        createdAt: new Date(),
+      };
       queryClient.setQueryData(["comments", post._id], old => [
         ...(old || []),
-        {
-          _id: `temp-${Date.now()}`,
-          user: {
-            _id: authUser._id,
-            fullName: authUser.fullName,
-            profilePicture: authUser.profilePicture,
-          },
-          content: commentContent,
-          createdAt: new Date(),
-        },
+        newComment,
       ]);
+      setCommentsCount(prev => prev + 1);
       return { previousComments };
     },
     onSuccess: () => {
@@ -76,6 +85,7 @@ const Post = ({ post, authUser, likePostMutation, unlikePostMutation }) => {
         ["comments", post._id],
         context.previousComments
       );
+      setCommentsCount(prev => prev - 1);
     },
   });
 
@@ -119,34 +129,6 @@ const Post = ({ post, authUser, likePostMutation, unlikePostMutation }) => {
   });
 
   const handleLikeToggle = () => {
-    const isLiked =
-      post.likes?.some(like => like.user._id === authUser._id) || false;
-
-    const updatePosts = (old, postId, addLike) => {
-      return (
-        old?.map(p =>
-          p._id === postId
-            ? {
-                ...p,
-                likes: addLike
-                  ? [
-                      ...(p.likes || []),
-                      {
-                        user: {
-                          _id: authUser._id,
-                          fullName: authUser.fullName,
-                        },
-                      },
-                    ]
-                  : (p.likes || []).filter(
-                      like => like.user._id !== authUser._id
-                    ),
-              }
-            : p
-        ) || []
-      );
-    };
-
     const mutation = isLiked ? unlikePostMutation : likePostMutation;
 
     mutation.mutate(post._id, {
@@ -161,6 +143,31 @@ const Post = ({ post, authUser, likePostMutation, unlikePostMutation }) => {
           authUser._id,
         ]);
 
+        const updatePosts = (old, postId, addLike) => {
+          return (
+            old?.map(p =>
+              p._id === postId
+                ? {
+                    ...p,
+                    likes: addLike
+                      ? [
+                          ...(p.likes || []),
+                          {
+                            user: {
+                              _id: authUser._id,
+                              fullName: authUser.fullName,
+                            },
+                          },
+                        ]
+                      : (p.likes || []).filter(
+                          like => like.user._id !== authUser._id
+                        ),
+                  }
+                : p
+            ) || []
+          );
+        };
+
         queryClient.setQueryData(["friendsPosts"], old =>
           updatePosts(old, post._id, !isLiked)
         );
@@ -168,7 +175,16 @@ const Post = ({ post, authUser, likePostMutation, unlikePostMutation }) => {
           updatePosts(old, post._id, !isLiked)
         );
 
+        setLikesCount(prev => (isLiked ? prev - 1 : prev + 1));
+        setIsLiked(!isLiked);
+
         return { previousFriendsPosts, previousUserPosts };
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["friendsPosts"] });
+        queryClient.invalidateQueries({
+          queryKey: ["userPosts", authUser._id],
+        });
       },
       onError: (err, _, context) => {
         console.error(`${isLiked ? "Unlike" : "Like"} error:`, err);
@@ -179,6 +195,14 @@ const Post = ({ post, authUser, likePostMutation, unlikePostMutation }) => {
         queryClient.setQueryData(
           ["userPosts", authUser._id],
           context.previousUserPosts
+        );
+        setLikesCount((post.likes || []).length);
+        setIsLiked(
+          post.likes?.some(like => like.user._id === authUser._id) || false
+        );
+        toast.error(
+          err.response?.data?.message ||
+            `Failed to ${isLiked ? "unlike" : "like"} post`
         );
       },
     });
@@ -249,20 +273,14 @@ const Post = ({ post, authUser, likePostMutation, unlikePostMutation }) => {
           className="btn btn-ghost btn-sm flex items-center gap-2"
           onClick={handleLikeToggle}
           disabled={likePostMutation.isPending || unlikePostMutation.isPending}
-          aria-label={
-            post.likes?.some(like => like.user._id === authUser._id)
-              ? "Unlike post"
-              : "Like post"
-          }
+          aria-label={isLiked ? "Unlike post" : "Like post"}
         >
           <Heart
             className={`w-5 h-5 ${
-              post.likes?.some(like => like.user._id === authUser._id)
-                ? "fill-current text-red-500"
-                : "text-base-content"
+              isLiked ? "fill-current text-red-500" : "text-base-content"
             }`}
           />
-          <span>{(post.likes || []).length} Likes</span>
+          <span>{likesCount} Likes</span>
         </button>
         <button
           className="btn btn-ghost btn-sm flex items-center gap-2"
@@ -270,7 +288,7 @@ const Post = ({ post, authUser, likePostMutation, unlikePostMutation }) => {
           aria-label={showComments ? "Hide comments" : "Show comments"}
         >
           <MessageCircle className="w-5 h-5 text-base-content" />
-          <span>{comments.length || 0} Comments</span>
+          <span>{commentsCount} Comments</span>
         </button>
       </div>
       {showComments && (

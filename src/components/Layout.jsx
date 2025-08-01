@@ -12,7 +12,7 @@ const Layout = ({ showSidebar = true, children }) => {
         } transition-all duration-300`}
       >
         <Header />
-        <main className="flex-1 p-4 sm:p-6 md:p-8">{children}</main>
+        <main className="flex-1 p-2 sm:p-4 md:p-6">{children}</main>
       </div>
     </div>
   );
