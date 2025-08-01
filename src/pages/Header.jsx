@@ -6,19 +6,11 @@ const Header = () => {
   const { theme } = useThemeStore();
 
   return (
-    <header
-      className="bg-base-200 border-b border-base-300 p-4 flex items-center justify-between"
-      data-theme={theme}
-    >
-      <div className="flex items-center gap-2.5">
-        <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-          ShuvoMedia
-        </h1>
-      </div>
-      <div className="flex items-center gap-4">
+    <div className="relative" data-theme={theme}>
+      <div className="absolute top-4 right-4 z-50">
         <ThemeSelector />
       </div>
-    </header>
+    </div>
   );
 };
 

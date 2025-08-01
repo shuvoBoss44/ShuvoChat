@@ -26,7 +26,6 @@ const App = () => {
 
   return (
     <div className="h-screen" data-theme={theme}>
-      <Header />
       <Routes>
         <Route
           path="/"

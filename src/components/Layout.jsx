@@ -1,17 +1,21 @@
+import React from "react";
 import Sidebar from "./Sidebar";
-import Navbar from "./Navbar";
+import Header from "./Header";
 
-const Layout = ({ children, showSidebar = false }) => {
+const Layout = ({ showSidebar = true, children }) => {
   return (
-    <div className="min-h-screen">
-      <div className="flex">
-        {showSidebar && <Sidebar />}
-
-        <div className="flex-1 flex flex-col">
-          <main className="flex-1 overflow-y-auto">{children}</main>
-        </div>
+    <div className="flex min-h-screen bg-base-100">
+      {showSidebar && <Sidebar />}
+      <div
+        className={`flex-1 flex flex-col ${
+          showSidebar ? "lg:ml-64" : ""
+        } transition-all duration-300`}
+      >
+        <Header />
+        <main className="flex-1 p-4 sm:p-6 md:p-8">{children}</main>
       </div>
     </div>
   );
 };
+
 export default Layout;
