@@ -51,20 +51,25 @@ const Profile = () => {
   // Use TanStack Query's useMutation for a better experience
   const updateProfileMutation = useMutation({
     mutationFn: async () => {
+      // Create a new FormData object
       const form = new FormData();
+
+      // Append all form data fields to the form object
       form.append("fullName", formData.fullName);
       form.append("bio", formData.bio);
       form.append("school", formData.school);
       form.append("college", formData.college);
       form.append("relationshipStatus", formData.relationshipStatus);
+
+      // Append the image file only if one has been selected
       if (imageFile) {
         form.append("profilePicture", imageFile);
       }
-      console.log(formData);
-      const response = await axiosInstance.patch(
-        "/user/updateProfile",
-        formData
-      );
+
+      // Send the FormData object with the correct content type header
+      const response = await axiosInstance.patch("/user/updateProfile", form, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       return response.data;
     },
     onSuccess: () => {
