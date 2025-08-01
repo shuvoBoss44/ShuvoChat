@@ -8,7 +8,7 @@ const CustomChannelHeader = ({ handleVideoCall }) => {
   const navigate = useNavigate();
 
   return (
-    <div className=" saventail items-center justify-between px-4 py-2 shadow-md bg-white dark:bg-gray-900">
+    <div className="flex items-center justify-between px-4 py-2 shadow-md bg-white dark:bg-gray-900">
       <div className="flex items-center gap-2">
         <button
           onClick={() => navigate("/messages")}
@@ -19,7 +19,9 @@ const CustomChannelHeader = ({ handleVideoCall }) => {
         </button>
         <ChannelHeader />
       </div>
-      <CallButton handleVideoCall={handleVideoCall} />
+      <div className="flex items-center">
+        <CallButton handleVideoCall={handleVideoCall} />
+      </div>
     </div>
   );
 };

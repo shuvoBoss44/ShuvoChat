@@ -15,7 +15,6 @@ import {
 import { StreamChat } from "stream-chat";
 import toast from "react-hot-toast";
 import CustomChannelHeader from "../components/CustomChannelHeader";
-import useThemeStore from "../store/useThemeStore";
 
 const ChatPage = () => {
   const { id: channelId } = useParams();
@@ -24,7 +23,6 @@ const ChatPage = () => {
   const [loading, setLoading] = useState(true);
   const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY;
   const { authUser } = useAuthUser();
-  const { theme } = useThemeStore();
 
   const { data: tokenData } = useQuery({
     queryKey: ["streamToken"],
@@ -88,7 +86,7 @@ const ChatPage = () => {
   }
 
   return (
-    <div className="h-[100vh]" data-theme={theme}>
+    <div className="h-[100vh]">
       <Chat client={chatClient}>
         <Channel channel={channel}>
           <Window>
